@@ -710,7 +710,7 @@
       
       <a class="index-excerpt " href="/2024/02/21/Coppersmith%E7%AE%97%E6%B3%95/" target="_self">
         <div>
-          Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppersmith至少需要288&#x2F;512位，57
+          (有待更新，这篇很旧以前写的，当时学的不太懂) Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppers
         </div>
       </a>
 
@@ -777,7 +777,7 @@
       
       <a class="index-excerpt " href="/2024/02/21/Rabin%E7%AE%97%E6%B3%95/" target="_self">
         <div>
-          Rabin算法加密过程选取两个大素数 p 与 q ，两个都同余3模4对于明文 m 和密文 c ，定义以下加密过程：c = pow(m,2,n)（一般情况下e取2，e也可取2的倍数） 解密过程明文c可以通过取 c 模 n 的平方根获得：  根据费马小定理计算 m 在模 p 和 q 时的平方根： mp &#x3D; c(1&#x2F;4)(p+1) mod p mq &#x3D; c(1&#x2F;4
+          Rabin算法加密过程选取两个大素数 $p$ 与 $q$，满足 $p,q \equiv 3 \pmod{4}$对于明文 $m$ 和密文 $c$，定义以下加密过程：$c \equiv m^2 \pmod{n}$（一般情况下 $e$ 取 2，$e$ 也可取 2 的倍数） 解密过程解密就是求解 $c$ 模 $n$ 的平方根，即求解同余式$$x^2 \equiv c \pmod{n}$$由中国剩余定理可知
         </div>
       </a>
 

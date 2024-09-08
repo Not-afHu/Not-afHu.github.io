@@ -19,16 +19,16 @@
   <meta name="author" content="John Doe">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppersmith至少需要288&#x2F;512位，57">
+    <meta name="description" content="(有待更新，这篇很旧以前写的，当时学的不太懂) Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppers">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Coppersmith算法">
 <meta property="og:url" content="http://example.com/2024/02/21/Coppersmith%E7%AE%97%E6%B3%95/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppersmith至少需要288&#x2F;512位，57">
+<meta property="og:description" content="(有待更新，这篇很旧以前写的，当时学的不太懂) Coppersmith算法 需要关注题目给的数据需不需要再去补0，二进制就需要2，十进制就10 如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100 以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppers">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/bg/bannerimg3.jpg">
 <meta property="article:published_time" content="2024-02-21T14:08:45.000Z">
-<meta property="article:modified_time" content="2024-03-28T14:35:20.423Z">
+<meta property="article:modified_time" content="2024-09-08T14:08:03.241Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="RSA算法">
 <meta name="twitter:card" content="summary_large_image">
@@ -278,7 +278,8 @@
             
               <div class="markdown-body">
                 
-                <h1 id="Coppersmith算法"><a href="#Coppersmith算法" class="headerlink" title="Coppersmith算法"></a>Coppersmith算法</h1><ol>
+                <p>(有待更新，这篇很旧以前写的，当时学的不太懂)</p>
+<h1 id="Coppersmith算法"><a href="#Coppersmith算法" class="headerlink" title="Coppersmith算法"></a>Coppersmith算法</h1><ol>
 <li><strong>需要关注题目给的数据需不需要再去补0，二进制就需要2<strong>，十进制就10</strong></strong></li>
 <li><strong>如果题目给的p&gt;&gt;100 &#x3D; 2101051…这种就需要在后面补零*2**100或者p&lt;&lt;100</strong></li>
 <li><strong>以已知p高位或者低位的题型来说，不考虑episilon参数(就是small_roots()里的beta参数)，coppersmith至少需要288&#x2F;512位，576&#x2F;1024位</strong></li>
