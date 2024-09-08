@@ -1,0 +1,723 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Babai 算法Babai’s nearest plane algorithmBabai 算法常用来解决CVP问题，近似因子 $\gamma &#x3D; 2^{n&#x2F;2}$ 在密码学中，CVP（Closest Vector Problem）是一个基于格的问题，其中要求找到给定格中离目标点最近的点。然而，在实际应用中，我们通常关心的是近似 CVP 问题，也就是找到一个距离目标点不超过最近格">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Babai算法">
+<meta property="og:url" content="http://example.com/2024/03/30/Babai%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Babai 算法Babai’s nearest plane algorithmBabai 算法常用来解决CVP问题，近似因子 $\gamma &#x3D; 2^{n&#x2F;2}$ 在密码学中，CVP（Closest Vector Problem）是一个基于格的问题，其中要求找到给定格中离目标点最近的点。然而，在实际应用中，我们通常关心的是近似 CVP 问题，也就是找到一个距离目标点不超过最近格">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bg/bannerimg10.jpg">
+<meta property="article:published_time" content="2024-03-30T08:07:41.000Z">
+<meta property="article:modified_time" content="2024-03-31T07:27:55.155Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="格密码">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/bg/bannerimg10.jpg">
+  
+  
+  
+  <title>Babai算法 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/bannerimg10.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Babai算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-03-30 16:07" pubdate>
+          2024年3月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Babai算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Babai-算法"><a href="#Babai-算法" class="headerlink" title="Babai 算法"></a>Babai 算法</h1><h2 id="Babai’s-nearest-plane-algorithm"><a href="#Babai’s-nearest-plane-algorithm" class="headerlink" title="Babai’s nearest plane algorithm"></a>Babai’s nearest plane algorithm</h2><p><strong>Babai 算法常用来解决CVP问题，近似因子 $\gamma &#x3D; 2^{n&#x2F;2}$</strong></p>
+<p><strong>在密码学中，CVP（Closest Vector Problem）是一个基于格的问题，其中要求找到给定格中离目标点最近的点。然而，在实际应用中，我们通常关心的是近似 CVP 问题，也就是找到一个距离目标点不超过最近格点距离的某个因子（通常记作 $\gamma$）的格点</strong></p>
+<p><strong>这个因子 $\gamma$ 被称为近似因子。当 $\gamma &#x3D; 1$ 时，我们就得到了原始的 CVP 问题。当 $\gamma &gt; 1$ 时，我们就允许找到的点与目标点的距离超过最近格点的距离，但不能超过这个距离的 $\gamma$ 倍</strong></p>
+<p><strong>近似因子 $\gamma$ 的大小影响了近似 CVP 问题的难度。当 $\gamma$ 越大时，问题就越容易解决，因为允许的解的范围越大。当 $\gamma$ 越小（但大于 1）时，问题就越难解决，因为允许的解的范围越小</strong></p>
+<p><strong>（其实CVP问题还有几个不同版本，但就CTF来说，一般是上面那个，<del>其它的看不懂</del>）</strong></p>
+<p><strong>举个例子解释一下这个算法</strong></p>
+<p><strong>设格 $L \subset R^2$，向量 $v_1 &#x3D; (137,312),v_2 &#x3D; (215,-187)$ 是格的基，需要寻找一个 $L$ 中的向量 $v$ ，满足 $||w-v||$ 最小，其中 $w &#x3D; (53172,81743)$</strong></p>
+<p><strong>我们要找的一个最近的向量，即 $w &#x3D; t_1v_1 + t_2v_2$ ，所以有以下方程</strong></p>
+<p>$$<br>\begin{pmatrix}<br>53712 &amp; 81743<br>\end{pmatrix} &#x3D;<br>\begin{pmatrix}<br>t_1 &amp; t_2<br>\end{pmatrix}<br>\begin{bmatrix}<br>137 &amp; 312 \\<br>215 &amp; -187<br>\end{bmatrix}<br>$$</p>
+<p><strong>可以解得，$t_1 \approx 296.85,t_2 \approx 58.15$ ,所以接近的向量 $v &#x3D; 287 (137,312) + 58(215,-187) &#x3D; (53159,81818)$</strong></p>
+<p><strong>计算一下误差 $||v-w|| \approx 76.12$ ，还是比较接近 $w$</strong></p>
+<p><strong>但是对于另一组基 $v_1 &#x3D; (1975,438),v_2 &#x3D; (7548,1627)$ 也用这种算法，我们得到的 $v’ &#x3D; (56405,82444)$，计算误差 $||v’-w|| \approx 3308.12$ ，误差较大</strong></p>
+<p><strong>对于两组基为什么会得到不太一样的效果呢？这里给大家介绍一下哈达马比例（Hadamard ratio）</strong></p>
+<p>$$<br>H(v_1,v_2) &#x3D; \left(\frac{\det(L)}{||v_1||||v_2||}\right)^\frac{1}{2}<br>$$</p>
+<p><strong>对于 n 维的情况下，有</strong></p>
+<p>$$<br>H(v_1,v_2,\ldots,v_n) &#x3D; \left(\frac{\det(L)}{||v_1||||v_2||\ldots||v_n||}\right)^\frac{1}{n}<br>$$</p>
+<p><strong>我们分别计算上面两组基的哈达马比例</strong></p>
+<p><strong>对于第一组基</strong></p>
+<p>$$<br>H(v_1,v_2) &#x3D; \left(\frac{\det(L)}{||v_1||||v_2||}\right)^\frac{1}{2} \approx \left(\frac{92699}{(340.75)(284.95)}\right)^\frac{1}{2} \approx 0.997<br>$$</p>
+<p><strong>非常接近于1</strong></p>
+<p><strong>对于第二组基</strong></p>
+<p>$$<br>H(v_1,v_2) &#x3D; \left(\frac{\det(L)}{||v_1||||v_2||}\right)^\frac{1}{2} \approx \left(\frac{92699}{(2022.99)(7721.36)}\right)^\frac{1}{2} \approx 0.077<br>$$</p>
+<p><strong>非常接近于0</strong></p>
+<p><strong>我们把接近于1的基称为好基（Good Basis），接近于0的基称为坏基（Bad Basis）。这里需要提的一点是，哈达马系数的范围是(0,1)的</strong></p>
+<p><strong>该题的解题想法，就是Babai算法的思想，找到一个好基，这样我们就可以近似的求出最接近的向量了</strong></p>
+<p><strong>具体算法</strong></p>
+<p><img src="/img/bg/babai_1.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>其中</strong> $c_j$ <strong>为 Gram-schmidt 正交化中的系数取整，也即</strong> $proj_{b_j}(b)$ ( $b$ 在$b_j$ 上的投影) <strong>的取整</strong></p>
+<p><strong>对于该算法第二步的个人理解(来自于CTF Wiki)：在格基规约和正交化(LLL)过后的基 $B$ 中找到一个最靠近 $t$ 的线性组合</strong></p>
+<h2 id="Babai’s-Rounding-Technique"><a href="#Babai’s-Rounding-Technique" class="headerlink" title="Babai’s Rounding Technique"></a>Babai’s Rounding Technique</h2><p><strong>该算法是Babai’s nearest plane algorithm的一个变种</strong></p>
+<p><strong>步骤可以表示为：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python">N = rank(B), w = target<br>- <span class="hljs-string">B&#x27; = LLL(B)</span><br><span class="hljs-string">- Find a linear combination [l_0, ... l_N] such that w = sum(l_i * b&#x27;</span>_i).<br>* (<span class="hljs-string">b&#x27;_i is the i-th vector in the LLL-reduced basis B&#x27;</span>)<br>- Round each l_i to it<span class="hljs-string">&#x27;s closest integer l&#x27;</span>_i.<br>- Result v = <span class="hljs-built_in">sum</span>(l<span class="hljs-string">&#x27;_i * b&#x27;</span>_i)<br></code></pre></td></tr></table></figure>
+
+<h2 id="HNP"><a href="#HNP" class="headerlink" title="HNP"></a>HNP</h2><p><strong>Hidden number problem</strong></p>
+<p><strong>给的质数 $p$ ，许多 $t \in F_p$ 以及每一个的 $MSB_{l,p}(at)$，找出对应的 $a$</strong></p>
+<ul>
+<li>$MSB_{l,p}(x)$ <strong>表示任一满足 $|(x \mod p) - u| \leq \frac{p}{2^{l+1}}$ 的整数 $u$ ，近似为取 $x \mod p$ 的 $l$ 个最高有效位</strong></li>
+</ul>
+<p><strong>根据参考三的描述，当 $l \approx \log^{1&#x2F;2}p$ 时，有如下算法可以解决HNP</strong></p>
+<p><strong>我们可以将此问题转化为一个由该矩阵生成的格上的 CVP 问题：</strong></p>
+<p>$$<br>\begin{bmatrix}<br>p &amp; 0 &amp;\ldots&amp; 0 &amp; 0 \\<br>0 &amp; p &amp;\ddots&amp; \vdots &amp; \vdots \\<br>\vdots &amp; \ddots &amp; \ddots &amp; 0 &amp; \vdots \\<br>0 &amp; 0 &amp; \ldots &amp; p &amp; 0 \\<br>t_1 &amp; t_2 &amp; \ldots &amp; t_n &amp; \frac{1}{2^{l+1}}<br>\end{bmatrix}<br>$$</p>
+<p><strong>我们需要在格上找到离 $u &#x3D; (u_1,u_2,\ldots,u_n,0)$ 最近的向量，所以在这里，我们可以采用 Babai’s nearest plane algorithm 最终我们可以得到一组向量</strong><br><strong>$v &#x3D; (a \cdot t_1 \mod p,a \cdot t_2 \mod p,\ldots,\frac{a}{2^{l+1}})$ ，从而算出 $a$</strong></p>
+<h3 id="BCTF-2018-guess-number"><a href="#BCTF-2018-guess-number" class="headerlink" title="BCTF 2018 - guess_number"></a>BCTF 2018 - guess_number</h3><p><strong>服务器端代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> random, sys<br><span class="hljs-keyword">from</span> flag <span class="hljs-keyword">import</span> FLAG<br><span class="hljs-keyword">import</span> gmpy2<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">msb</span>(<span class="hljs-params">k, x, p</span>):<br>    delta = p &gt;&gt; (k + <span class="hljs-number">1</span>)<br>    ui = random.randint(x - delta, x + delta)<br>    <span class="hljs-keyword">return</span> ui<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():<br>    p = gmpy2.next_prime(<span class="hljs-number">2</span>**<span class="hljs-number">160</span>)<br>    <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">5</span>):<br>        alpha = random.randint(<span class="hljs-number">1</span>, p - <span class="hljs-number">1</span>)<br>        <span class="hljs-comment"># print(alpha)</span><br>        t = []<br>        u = []<br>        k = <span class="hljs-number">10</span><br>        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">22</span>):<br>            t.append(random.randint(<span class="hljs-number">1</span>, p - <span class="hljs-number">1</span>))<br>            u.append(msb(k, alpha * t[i] % p, p))<br>        <span class="hljs-built_in">print</span>(<span class="hljs-built_in">str</span>(t))<br>        <span class="hljs-built_in">print</span>(<span class="hljs-built_in">str</span>(u))<br>        guess = raw_input(<span class="hljs-string">&#x27;Input your guess number: &#x27;</span>)<br>        guess = <span class="hljs-built_in">int</span>(guess)<br>        <span class="hljs-keyword">if</span> guess != alpha:<br>            exit(<span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:<br>    main()<br>    <span class="hljs-built_in">print</span>(FLAG)<br></code></pre></td></tr></table></figure>
+
+<p><strong>可以看到，程序一共执行 5 轮，在每一轮，随机的</strong> $α$ <strong>和 22 个随机的</strong> $t_i$，<strong>对于每一个</strong> $t_i$，<strong>程序会取</strong> $u_i &#x3D; MSB_{10,p}(a \cdot t_i \mod p)$ ，<strong>随后发送给客户端，我们需要根据提供的</strong> $t_i$ <strong>和</strong> $u_i$ <strong>计算出对应的</strong> $a$，<strong>可以看到，该问题是一个典型的 HNP 问题，可以使用上述方法解决</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> socket<br><span class="hljs-keyword">import</span> ast<br><span class="hljs-keyword">import</span> telnetlib<br><br><span class="hljs-comment">#HOST, PORT = &#x27;localhost&#x27;, 9999</span><br>HOST, PORT = <span class="hljs-string">&#x27;60.205.223.220&#x27;</span>, <span class="hljs-number">9999</span><br><br>s = socket.socket()<br>s.connect((HOST, PORT))<br>f = s.makefile(<span class="hljs-string">&#x27;rw&#x27;</span>, <span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">recv_until</span>(<span class="hljs-params">f, delim=<span class="hljs-string">&#x27;\n&#x27;</span></span>):<br>    buf = <span class="hljs-string">&#x27;&#x27;</span><br>    <span class="hljs-keyword">while</span> <span class="hljs-keyword">not</span> buf.endswith(delim):<br>        buf += f.read(<span class="hljs-number">1</span>)<br>    <span class="hljs-keyword">return</span> buf<br><br>p = <span class="hljs-number">1461501637330902918203684832716283019655932542983</span><br>k = <span class="hljs-number">10</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">solve_hnp</span>(<span class="hljs-params">t, u</span>):<br>    <span class="hljs-comment"># http://www.isg.rhul.ac.uk/~sdg/igor-slides.pdf</span><br>    M = Matrix(RationalField(), <span class="hljs-number">23</span>, <span class="hljs-number">23</span>)<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> xrange(<span class="hljs-number">22</span>):<br>        M[i, i] = p<br>        M[<span class="hljs-number">22</span>, i] = t[i]<br><br>    M[<span class="hljs-number">22</span>, <span class="hljs-number">22</span>] = <span class="hljs-number">1</span> / (<span class="hljs-number">2</span> ** (k + <span class="hljs-number">1</span>))<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">babai</span>(<span class="hljs-params">A, w</span>):<br>        A = A.LLL(delta=<span class="hljs-number">0.75</span>)<br>        G = A.gram_schmidt()[<span class="hljs-number">0</span>]<br>        t = w<br>        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(<span class="hljs-built_in">range</span>(A.nrows())):<br>            c = ((t * G[i]) / (G[i] * G[i])).<span class="hljs-built_in">round</span>()<br>            t -= A[i] * c<br>        <span class="hljs-keyword">return</span> w - t<br><br>    closest = babai(M, vector(u + [<span class="hljs-number">0</span>]))<br>    <span class="hljs-keyword">return</span> (closest[-<span class="hljs-number">1</span>] * (<span class="hljs-number">2</span> ** (k + <span class="hljs-number">1</span>))) % p<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> xrange(<span class="hljs-number">5</span>):<br>    t = ast.literal_eval(f.readline().strip())<br>    u = ast.literal_eval(f.readline().strip())<br>    alpha = solve_hnp(t, u)<br>    recv_until(f, <span class="hljs-string">&#x27;number: &#x27;</span>)<br>    s.send(<span class="hljs-built_in">str</span>(alpha) + <span class="hljs-string">&#x27;\n&#x27;</span>)<br><br>t = telnetlib.Telnet()<br>t.sock = s<br>t.interact()<br></code></pre></td></tr></table></figure>
+
+<h2 id="LWE"><a href="#LWE" class="headerlink" title="LWE"></a>LWE</h2><p><strong>Learning with error</strong></p>
+<p><strong>主要关注这样一个式子</strong></p>
+<p>$$<br>A_{m \times n} \cdot x_{n \times 1} + e_{m \times 1} &#x3D; b_{m \times 1} \mod q<br>$$</p>
+<p><strong>其中</strong> $A$ <strong>是一个</strong> $m \times n$ <strong>的矩阵（公开）<del>（好像m会比n大？如果n比m大的话就是一个长的x映射到一个短的b，就能有多个x映射到b导致不能解密了）</del>；</strong> $x$ <strong>是</strong> $n \times 1$ <strong>的向量（明文）；</strong> $e$ <strong>是误差，可以看成是每个元素都很小的</strong> $m \times 1$ <strong>的向量（密钥）；</strong> $b$ <strong>是</strong> $m \times 1$ <strong>向量（密文）。运算都是在mod q下进行的，q是素数</strong></p>
+<p><strong>在知道 $e$ 的情况下，通过上式简单的高斯消元就可以解出密文，即有私钥是容易解的</strong><br><strong>在不知道私钥 $e$ 的情况下，高斯消元法会放大误差 $e$ ，即只知道公钥和密文是难解的</strong></p>
+<h3 id="解法"><a href="#解法" class="headerlink" title="解法"></a>解法</h3><p><strong>首先现在问题是</strong></p>
+<p>$$<br>A_{m \times n} \cdot x_{n \times 1} + e_{m \times 1} &#x3D; b_{m \times 1} \mod q<br>$$</p>
+<p><strong>知道A、b和q，e很小，求x，因为加了e，所以b大概率不会在格A中，但考虑到e很小，如果找到b在格A中最近的向量b`，则有（其实b`是等于b-e ？）：</strong></p>
+<p>$$<br>A \cdot x &#x3D; b’ \mod q<br>$$</p>
+<p><strong>由于Babai算法不能在模运算之下计算，需要消除 mod q</strong></p>
+<p>$$<br>A \cdot x + kqI_m &#x3D; b’ - e<br>$$</p>
+<p><strong>$I_m$ 在这里表示一个 $m$ 维的单位矩阵， $k$ 是 $m*1$ 的向量，就是把每一条 $a_ix_i + k_iq &#x3D; b_i - e_i$ 写成向量和矩阵的形式，就可以构造格（sage有时运行不了就前后交换或者转置）</strong></p>
+<p>$$<br>\begin{bmatrix}<br>A &amp; qI_m<br>\end{bmatrix}<br>\begin{bmatrix}<br>x \\<br>k<br>\end{bmatrix} &#x3D;<br>b - e<br>$$</p>
+<h3 id="2020祥云杯-easy-matrix"><a href="#2020祥云杯-easy-matrix" class="headerlink" title="2020祥云杯 easy matrix"></a><a target="_blank" rel="noopener" href="https://github.com/fghcvjk/2020xiangyuncup/tree/master/crypto/easy%20matrix">2020祥云杯 easy matrix</a></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><span class="hljs-keyword">from</span> secret <span class="hljs-keyword">import</span> *<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">random_offset</span>(<span class="hljs-params">size</span>):<br>    x = np.random.normal(<span class="hljs-number">0</span>, <span class="hljs-number">4.7873</span>, size)<br>    <span class="hljs-keyword">return</span> np.rint(x)<br><br>secret = np.array(<span class="hljs-built_in">list</span>(flag))<br><br>column = <span class="hljs-built_in">len</span>(<span class="hljs-built_in">list</span>(secret))<br>row = <span class="hljs-number">128</span><br>prime = <span class="hljs-number">2129</span><br><br>matrix = np.random.randint(<span class="hljs-number">512</span>, size=(row, column))<br>product = matrix.dot(secret) % prime<br>offset = random_offset(size=row).astype(np.int64)<br>result = (product + offset) % prime<br><br>np.save(<span class="hljs-string">&quot;matrix.npy&quot;</span>, matrix)<br>np.save(<span class="hljs-string">&quot;result.npy&quot;</span>, result)<br></code></pre></td></tr></table></figure>
+
+<p><strong>题目就是个LWE的加密，matrix是A、secret是x、offset 是e、result是b、prime是q</strong></p>
+<p><strong>按照上面的思路可以写出Sage脚本如下：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#!/usr/bin/env sage</span><br><span class="hljs-keyword">from</span> sage.modules.free_module_integer <span class="hljs-keyword">import</span> IntegerLattice<br><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">Babai</span>(<span class="hljs-params">B, t</span>):<br>    <span class="hljs-comment"># not square when using .LLL(), so use IntegerLattice ...</span><br>    B = IntegerLattice(B, lll_reduce=<span class="hljs-literal">True</span>).reduced_basis<br>    G = B.gram_schmidt()[<span class="hljs-number">0</span>]<br>    b = t<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(<span class="hljs-built_in">range</span>(B.ncols())):<br>        b -=  B[i] * ((b * G[i]) / (G[i] * G[i])).<span class="hljs-built_in">round</span>()<br>    <span class="hljs-keyword">return</span> t - b<br><br>mx = <span class="hljs-built_in">list</span>(np.load(<span class="hljs-string">&#x27;./matrix.npy&#x27;</span>))<br>rt = <span class="hljs-built_in">list</span>(np.load(<span class="hljs-string">&#x27;./result.npy&#x27;</span>))<br><br>A = matrix(ZZ, mx)<br>b = vector(ZZ, rt)<br>p = <span class="hljs-number">2129</span><br>r = A.nrows()<br>c = A.ncols()<br><br>pIr = p*identity_matrix(r)<br><span class="hljs-comment">#M = block_matrix([[A.transpose()], [pIr]])  # [x, k]*[[A.t], [pIr]] = (b-e).t  (but not work ...</span><br>M = block_matrix([[pIr], [A.transpose()]])  <span class="hljs-comment"># [k, x]*[[pIr], [A.t]] = (b-e).t   (this works ...</span><br>br = Babai(M, b)<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;e = %s&#x27;</span> % (b-br))<br>R = IntegerModRing(p)<br>Ar = matrix(R, mx)<br>secret = Ar.solve_right(br)<br><br>m = <span class="hljs-string">&#x27;&#x27;</span>.join(<span class="hljs-built_in">chr</span>(x) <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> secret)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&#x27;m = %s&#x27;</span> % m)<br></code></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="总结-（2020-Aero-CTF-Magic-ll）"><a href="#总结-（2020-Aero-CTF-Magic-ll）" class="headerlink" title="总结 （2020 Aero CTF Magic ll）"></a>总结 （2020 Aero CTF Magic ll）</h2><p><strong><a target="_blank" rel="noopener" href="https://hackmd.io/@hakatashi/B1OM7HFVI#challenge-details">WP</a></strong><br><strong>也是 LWE 问题，但是找不到题目源代码，WP里面对于题目只有关键代码的截取，在这里分析一下WP对于Babai算法的实现（加了亿点GPT的注释）</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> sage.modules.free_module_integer <span class="hljs-keyword">import</span> IntegerLattice  <br><span class="hljs-keyword">from</span> random <span class="hljs-keyword">import</span> randint  <br><span class="hljs-keyword">import</span> sys <br><span class="hljs-keyword">from</span> itertools <span class="hljs-keyword">import</span> starmap <br><span class="hljs-keyword">from</span> operator <span class="hljs-keyword">import</span> mul  <br><br><span class="hljs-comment"># Babai&#x27;s Nearest Plane algorithm</span><br><span class="hljs-comment"># from: http://mslc.ctf.su/wp/plaidctf-2016-sexec-crypto-300/</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">Babai_closest_vector</span>(<span class="hljs-params">M, G, target</span>):  <span class="hljs-comment"># 定义Babai的最近平面算法</span><br>  small = target  <span class="hljs-comment"># 初始化small为目标向量</span><br>  <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>):  <span class="hljs-comment"># 进行一次循环</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">reversed</span>(<span class="hljs-built_in">range</span>(M.nrows())):  <span class="hljs-comment"># 从后向前遍历M的每一行</span><br>      c = ((small * G[i]) / (G[i] * G[i])).<span class="hljs-built_in">round</span>()  <span class="hljs-comment"># 计算c，它是small和G[i]的点积除以G[i]的长度的平方，然后四舍五入</span><br>      small -= M[i] * c  <span class="hljs-comment"># 更新small，它是small减去M[i]和c的乘积</span><br>  <span class="hljs-keyword">return</span> target - small  <span class="hljs-comment"># 返回目标向量减去small，这就是最近的向量</span><br><br>m = <span class="hljs-number">100</span>  <br>n = <span class="hljs-number">12</span> <br>q = <span class="hljs-number">1046961993706256953070441</span>  <br><br><br>A_values = [[<span class="hljs-number">432963764937</span>, <span class="hljs-number">1734018663110</span>, <span class="hljs-number">341889949567</span>, <span class="hljs-number">1898982667391</span>, <span class="hljs-number">2077151719276</span>, <span class="hljs-number">1407002783602</span>, <span class="hljs-number">1284167537027</span>, <span class="hljs-number">1834426568578</span>, <span class="hljs-number">285492081118</span>, <span class="hljs-number">2058066808411</span>, <span class="hljs-number">682725745551</span>, <span class="hljs-number">212794466530</span>], ...]<br>b_values = [<span class="hljs-number">675829748828112222653599</span>, <span class="hljs-number">19282755083699178123269</span>, <span class="hljs-number">678436649010458903205058</span>, ...]<br><br>A = matrix(ZZ, m + n, m)  <span class="hljs-comment"># 创建一个(m+n) x m的整数矩阵A</span><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):  <span class="hljs-comment"># 对于每一个i从0到m-1</span><br>  A[i, i] = q  <span class="hljs-comment"># 设置A的对角线元素为q</span><br><span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):  <span class="hljs-comment"># 对于每一个x从0到m-1</span><br>  <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(n):  <span class="hljs-comment"># 对于每一个y从0到n-1</span><br>    A[m + y, x] = A_values[x][y]  <span class="hljs-comment"># 设置A的元素</span><br>lattice = IntegerLattice(A, lll_reduce=<span class="hljs-literal">True</span>)  <span class="hljs-comment"># 创建一个整数格，并进行LLL减少</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;LLL done&quot;</span>)  <span class="hljs-comment"># 打印&quot;LLL done&quot;表示LLL减少已经完成</span><br>gram = lattice.reduced_basis.gram_schmidt()[<span class="hljs-number">0</span>]  <span class="hljs-comment"># 计算格的Gram-Schmidt正交化</span><br>target = vector(ZZ, b_values)  <span class="hljs-comment"># 创建一个目标向量，它是b_values的整数向量</span><br>res = Babai_closest_vector(lattice.reduced_basis, gram, target)  <span class="hljs-comment"># 使用Babai的最近平面算法找到最近的向量</span><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Closest Vector: &#123;&#125;&quot;</span>.<span class="hljs-built_in">format</span>(res))  <span class="hljs-comment"># 打印最近的向量</span><br><br>R = IntegerModRing(q)  <span class="hljs-comment"># 创建一个模q的整数环</span><br>M = Matrix(R, A_values)  <span class="hljs-comment"># 创建一个在模q的整数环上的矩阵，它是A_values</span><br>ingredients = M.solve_right(res)  <span class="hljs-comment"># 解线性方程Mx=res</span><br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Ingredients: &#123;&#125;&quot;</span>.<span class="hljs-built_in">format</span>(ingredients))  <span class="hljs-comment"># 打印解</span><br><br><span class="hljs-keyword">for</span> row, b <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(A_values, b_values):  <span class="hljs-comment"># 对于A_values和b_values中的每一对元素</span><br>  effect = <span class="hljs-built_in">sum</span>(starmap(mul, <span class="hljs-built_in">zip</span>(<span class="hljs-built_in">map</span>(<span class="hljs-built_in">int</span>, ingredients), row))) % q  <span class="hljs-comment"># 计算乘积的和，然后模q</span><br>  <span class="hljs-keyword">assert</span>(<span class="hljs-built_in">abs</span>(b - effect) &lt; <span class="hljs-number">2</span> ** <span class="hljs-number">37</span>)  <span class="hljs-comment"># 检查这个值是否接近b</span><br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;ok&quot;</span>)  <br></code></pre></td></tr></table></figure>
+<p><strong>最前面两个算法脚本里对于Babai的代码实现大体都是相同的（HNP那里因为求解的问题不一样，返回值不一样），在Babai()函数里面实现格基规约和正交化，然后寻找最接近向量，这个脚本和前面的不同点也就是传入Babai()函数前已经完成了格基规约和正交化，具体细节看看GPT给的注释也可以明白</strong></p>
+<p><strong>总的来说，Babai算法用来解决维度较小的CVP问题，但是在使用这个算法之前要先使得格基正交化或者准正交化（人话：LLL之后计算格的Gram-Schmidt正交化）</strong></p>
+<p><strong>(这里对于 HNP 和 LWE 都只是简单的介绍，后面有时间还会再写，不过题目脚本都是参考的大佬博客，感觉自己上还是不会写，<del>写完博客就刷点题</del>)</strong></p>
+<p><strong>参考：</strong><br><strong><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010536377/article/details/42142075">[密码学]格密码学（3）-Babai算法以及GGH公钥密码体制介绍</a></strong><br><strong><a target="_blank" rel="noopener" href="https://ctf-wiki.org/crypto/asymmetric/lattice/cvp/#algorithms">CTF Wiki</a></strong><br><strong><a target="_blank" rel="noopener" href="http://www.isg.rhul.ac.uk/~sdg/igor-slides.pdf">Playing “Hide-and-Seek” in Finite Fields: Hidden Number Problem and Its Applications</a></strong><br><strong><a target="_blank" rel="noopener" href="https://tover.xyz/p/lattices-LWE/">用格解LWE——笔记</a></strong><br><strong><a target="_blank" rel="noopener" href="https://lazzzaro.github.io/2020/11/07/crypto-%E6%A0%BC%E5%AF%86%E7%A0%81/">格密码</a></strong><br><strong><a target="_blank" rel="noopener" href="https://hackmd.io/@hakatashi/B1OM7HFVI#challenge-details">Aero CTF 2020 - Magic II (Crypto, 496pts)</a></strong><br><strong><a target="_blank" rel="noopener" href="https://cims.nyu.edu/~regev/teaching/lattices_fall_2004/ln/cvp.pdf">Lecture 3 - CVP algorithm</a></strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A0%BC%E5%AF%86%E7%A0%81/" class="category-chain-item">格密码</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%A0%BC%E5%AF%86%E7%A0%81/" class="print-no-link">#格密码</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Babai算法</div>
+      <div>http://example.com/2024/03/30/Babai算法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年3月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/04/06/DLP%E5%AD%A6%E4%B9%A0/" title="DLP学习">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">DLP学习</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/26/%E6%A0%BC%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B9%A0-LLL%E7%AE%97%E6%B3%95/" title="格密码学习 LLL算法">
+                        <span class="hidden-mobile">格密码学习 LLL算法</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

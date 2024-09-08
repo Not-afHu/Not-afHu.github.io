@@ -1,0 +1,688 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="LCG学习LCG属于PRNG(伪随机数生成器)和stream cipher(流密码)的一种，是一种产生伪随机数的方法。Xn+1 &#x3D; (a*Xn + b) mod m其中，Xn代表第n个生成的随机数，X0被称为种子值。这里还定义了三个整数：a乘数、b增量、m模数，是产生器设定的常数。 参数LCG的性质与参数的选择密切相关，不同的参数可能导致不同的随机序列。一般按照如下要求选择参数：  m是">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LCG学习">
+<meta property="og:url" content="http://example.com/2024/02/28/LCG%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="LCG学习LCG属于PRNG(伪随机数生成器)和stream cipher(流密码)的一种，是一种产生伪随机数的方法。Xn+1 &#x3D; (a*Xn + b) mod m其中，Xn代表第n个生成的随机数，X0被称为种子值。这里还定义了三个整数：a乘数、b增量、m模数，是产生器设定的常数。 参数LCG的性质与参数的选择密切相关，不同的参数可能导致不同的随机序列。一般按照如下要求选择参数：  m是">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bg/bannerimg6.jpg">
+<meta property="article:published_time" content="2024-02-28T13:05:40.000Z">
+<meta property="article:modified_time" content="2024-03-02T01:00:50.065Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="LCG">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/bg/bannerimg6.jpg">
+  
+  
+  
+  <title>LCG学习 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/bannerimg6.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="LCG学习"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-02-28 21:05" pubdate>
+          2024年2月28日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">LCG学习</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="LCG学习"><a href="#LCG学习" class="headerlink" title="LCG学习"></a>LCG学习</h1><p><strong>LCG属于PRNG(伪随机数生成器)和stream cipher(流密码)的一种，是一种产生伪随机数的方法。<br>X<sub>n+1</sub> &#x3D; (a*X<sub>n</sub> + b) mod m<br>其中，X<sub>n</sub>代表第n个生成的随机数，X<sub>0</sub>被称为种子值。这里还定义了三个整数：a乘数、b增量、m模数，是产生器设定的常数。</strong></p>
+<h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><p><strong>LCG的性质与参数的选择密切相关，不同的参数可能导致不同的随机序列。一般按照如下要求选择参数：</strong></p>
+<ul>
+<li><strong>m是随机序列的模数，必须一个大于0的正整数。一般是一个比较大的素数或者是2的幂，以便提供较长的周期长度。</strong></li>
+<li><strong>a是乘数，必须是一个与m互素的正整数。</strong></li>
+<li><strong>b是增量，也必须是一个与m互素的正整数。</strong></li>
+</ul>
+<p><strong>LCG 的周期最大为 M，但大部分情况都会少于 M。要令 LCG 达到最大周期，应符合以下条件：</strong></p>
+<ul>
+<li><strong>B，M 互质</strong></li>
+<li><strong>M 的所有质因数都能整除 A-1</strong></li>
+<li><strong>若 M 是 4 的倍数，A-1 也是</strong></li>
+<li><strong>A,B,X<sub>0</sub>都比 M 小</strong></li>
+</ul>
+<h2 id="常用公式"><a href="#常用公式" class="headerlink" title="常用公式"></a>常用公式</h2><p><strong>由X<sub>n+1</sub>反推X<sub>n</sub>：</strong><br><strong><center>X<sub>n</sub> &#x3D; ((X<sub>n+1</sub> - b) * a<sup>-1</sup>) mod m，这里a<sup>-1</sup>是模逆元</center></strong><br><strong>求 a：</strong><br><strong><center>a &#x3D; ((X<sub>n+1</sub> - X<sub>n</sub>) * (X<sub>n</sub> - X<sub>n-1</sub>)<sup>-1</sup>) mod m</center></strong><br><strong>求 b：</strong><br><strong><center>b &#x3D; (X<sub>n+1</sub> - a * X<sub>n</sub>) mod m</center></strong><br><strong>求 m:</strong><br><strong><center>t<sub>n</sub> &#x3D; X<sub>n+1</sub> - X<sub>n</sub> &#x3D; a(X<sub>n</sub> - X<sub>n-1</sub>) &#x3D; a*t<sub>n-1</sub> mod m</center></strong><br><strong><center>t<sub>n+1</sub>t<sub>n-1</sub> - t<sub>n</sub>t<sub>n</sub> &#x3D; a*a* t<sub>n-1</sub>*t<sub>n-1</sub> - a*t<sub>n-1</sub>*a*t<sub>n-1</sub> &#x3D; 0 mod m</center></strong><br><strong><center>即T<sub>n</sub> &#x3D; t<sub>n+1</sub>t<sub>n-1</sub> - t<sub>n</sub>t<sub>n</sub> 是 m 的倍数，故T<sub>n</sub>和T<sub>n-1</sub>的最大公因数即为 m</center></strong></p>
+<h2 id="python代码实现"><a href="#python代码实现" class="headerlink" title="python代码实现"></a>python代码实现</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LCG</span>:<br>  a = <span class="hljs-number">672257317069504227</span>  <span class="hljs-comment"># &quot;乘数&quot;</span><br>  b = <span class="hljs-number">7382843889490547368</span>  <span class="hljs-comment"># &quot;增量&quot;</span><br>  m = <span class="hljs-number">9223372036854775783</span>  <span class="hljs-comment"># &quot;模数&quot;</span><br>  <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, seed</span>):<br>    <span class="hljs-variable language_">self</span>.state = seed  <span class="hljs-comment"># &quot;种子&quot;</span><br>  <span class="hljs-keyword">def</span> <span class="hljs-title function_">next</span>(<span class="hljs-params">self</span>):<br>    <span class="hljs-variable language_">self</span>.state = (<span class="hljs-variable language_">self</span>.state * <span class="hljs-variable language_">self</span>.a + <span class="hljs-variable language_">self</span>.b) % <span class="hljs-variable language_">self</span>.m<br>    <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.state<br>gen = LCG(<span class="hljs-number">123</span>)  <span class="hljs-comment"># seed = 123</span><br><span class="hljs-built_in">print</span> gen.<span class="hljs-built_in">next</span>()  <span class="hljs-comment"># 第一个生成值</span><br><span class="hljs-built_in">print</span> gen.<span class="hljs-built_in">next</span>()  <span class="hljs-comment"># 第二个生成值</span><br><span class="hljs-built_in">print</span> gen.<span class="hljs-built_in">next</span>()  <span class="hljs-comment"># 第三个生成值</span><br><span class="hljs-comment"># 7060145557346585242</span><br><span class="hljs-comment"># 3490819368718893392</span><br><span class="hljs-comment"># 6200546448603839134</span><br></code></pre></td></tr></table></figure>
+<h2 id="常见题型"><a href="#常见题型" class="headerlink" title="常见题型"></a>常见题型</h2><h3 id="LCG-1：a，b，m都知道，相当于由Xn-1反推Xn"><a href="#LCG-1：a，b，m都知道，相当于由Xn-1反推Xn" class="headerlink" title="LCG_1：a，b，m都知道，相当于由Xn+1反推Xn"></a>LCG_1：a，b，m都知道，相当于由X<sub>n+1</sub>反推X<sub>n</sub></h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><br>flag = <span class="hljs-string">b&#x27;NSSCTF&#123;******&#125;&#x27;</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LCG</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, seed, a, b, m</span>):<br>        <span class="hljs-variable language_">self</span>.seed = seed  <span class="hljs-comment"># 初始种子</span><br>        <span class="hljs-variable language_">self</span>.a = a  <span class="hljs-comment"># 乘数</span><br>        <span class="hljs-variable language_">self</span>.b = b  <span class="hljs-comment"># 增量</span><br>        <span class="hljs-variable language_">self</span>.m = m  <span class="hljs-comment"># 模数</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">generate</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-variable language_">self</span>.seed = (<span class="hljs-variable language_">self</span>.a * <span class="hljs-variable language_">self</span>.seed + <span class="hljs-variable language_">self</span>.b) % <span class="hljs-variable language_">self</span>.m<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.seed<br><br><br>lcg = LCG(bytes_to_long(flag), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>))<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(getPrime(<span class="hljs-number">16</span>)):<br>    lcg.generate()<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;a = <span class="hljs-subst">&#123;lcg.a&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;b = <span class="hljs-subst">&#123;lcg.b&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;m = <span class="hljs-subst">&#123;lcg.m&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(lcg.generate())<br><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">a = 113439939100914101419354202285461590291215238896870692949311811932229780896397</span><br><span class="hljs-string">b = 72690056717043801599061138120661051737492950240498432137862769084012701248181</span><br><span class="hljs-string">m = 72097313349570386649549374079845053721904511050364850556329251464748004927777</span><br><span class="hljs-string">9772191239287471628073298955242262680551177666345371468122081567252276480156</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>题目分析</strong></p>
+<ul>
+<li><strong>迭代的次数是getPrime(16)，我们并不知道迭代了多少次，但是我们知道flag的格式是b’NSSCTF{******}’，不断反推直到符合格式即可</strong></li>
+</ul>
+<p><strong>解题代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> gmpy2<br><span class="hljs-keyword">import</span> libnum<br><br>a = <span class="hljs-number">113439939100914101419354202285461590291215238896870692949311811932229780896397</span><br>b = <span class="hljs-number">72690056717043801599061138120661051737492950240498432137862769084012701248181</span><br>m = <span class="hljs-number">72097313349570386649549374079845053721904511050364850556329251464748004927777</span><br>c=<span class="hljs-number">9772191239287471628073298955242262680551177666345371468122081567252276480156</span><br><br><span class="hljs-comment"># c=(a*c0+b)%m</span><br>a_1=gmpy2.invert(a,m)<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>**<span class="hljs-number">16</span>):<br>    c = (c - b) * a_1 % m<br>    <span class="hljs-comment">#print(c)</span><br>    flag=libnum.n2s(<span class="hljs-built_in">int</span>(c))<br>    <span class="hljs-keyword">if</span> <span class="hljs-string">b&#x27;NSSCTF&#123;&#x27;</span> <span class="hljs-keyword">in</span> flag:<br>        <span class="hljs-built_in">print</span>(flag)<br>        <span class="hljs-keyword">break</span><br><span class="hljs-comment">#b&#x27;NSSCTF&#123;recover_init_seed&#125;&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="LCG-2：不知道b，用a，m，Xn-1和Xn推出b就和LCG-1一样了"><a href="#LCG-2：不知道b，用a，m，Xn-1和Xn推出b就和LCG-1一样了" class="headerlink" title="LCG_2：不知道b，用a，m，Xn+1和Xn推出b就和LCG_1一样了"></a>LCG_2：不知道b，用a，m，X<sub>n+1</sub>和X<sub>n</sub>推出b就和LCG_1一样了</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><br>flag = <span class="hljs-string">b&#x27;NSSCTF&#123;******&#125;&#x27;</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LCG</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, seed, a, b, m</span>):<br>        <span class="hljs-variable language_">self</span>.seed = seed  <span class="hljs-comment"># 初始种子</span><br>        <span class="hljs-variable language_">self</span>.a = a  <span class="hljs-comment"># 乘数</span><br>        <span class="hljs-variable language_">self</span>.b = b  <span class="hljs-comment"># 增量</span><br>        <span class="hljs-variable language_">self</span>.m = m  <span class="hljs-comment"># 模数</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">generate</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-variable language_">self</span>.seed = (<span class="hljs-variable language_">self</span>.a * <span class="hljs-variable language_">self</span>.seed + <span class="hljs-variable language_">self</span>.b) % <span class="hljs-variable language_">self</span>.m<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.seed<br><br><br>lcg = LCG(bytes_to_long(flag), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>))<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(getPrime(<span class="hljs-number">16</span>)):<br>    lcg.generate()<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;a = <span class="hljs-subst">&#123;lcg.a&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;m = <span class="hljs-subst">&#123;lcg.m&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(lcg.generate())<br><span class="hljs-built_in">print</span>(lcg.generate())<br><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">a = 83968440254358975953360088805517488739689448515913931281582194839594954862517</span><br><span class="hljs-string">m = 77161425490597512806099499399561161959645895427463118872087051902811605680317</span><br><span class="hljs-string">43959768681328408257423567932475057408934775157371406900460140947365416240650</span><br><span class="hljs-string">8052043336238864355872102889254781281466728072798160448260752595038552944808</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>解题代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> gmpy2<br><span class="hljs-keyword">import</span> libnum<br><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> isPrime<br><br>a = <span class="hljs-number">83968440254358975953360088805517488739689448515913931281582194839594954862517</span><br>m = <span class="hljs-number">77161425490597512806099499399561161959645895427463118872087051902811605680317</span><br>c1=<span class="hljs-number">43959768681328408257423567932475057408934775157371406900460140947365416240650</span><br>c2=<span class="hljs-number">8052043336238864355872102889254781281466728072798160448260752595038552944808</span><br><br>b=(c2-a*c1) % m<br><span class="hljs-comment">#print(b)</span><br><span class="hljs-comment">#print(gmpy2.gcd(b,m))</span><br>a_1 = gmpy2.invert(a,m)<br>c = c1<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>**<span class="hljs-number">16</span>):<br>    c = (c-b) * a_1 % m<br>    flag = libnum.n2s(<span class="hljs-built_in">int</span>(c))<br><br>    <span class="hljs-keyword">if</span> <span class="hljs-string">b&#x27;NSSCTF&#x27;</span> <span class="hljs-keyword">in</span> flag:<br>        <span class="hljs-built_in">print</span>(flag)<br>        <span class="hljs-keyword">break</span><br><span class="hljs-comment">#b&#x27;NSSCTF&#123;recover_b&#125;&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="LCG-3：a、b都不知道，先求出a-之后操作同LCG-2"><a href="#LCG-3：a、b都不知道，先求出a-之后操作同LCG-2" class="headerlink" title="LCG_3：a、b都不知道，先求出a,之后操作同LCG_2"></a>LCG_3：a、b都不知道，先求出a,之后操作同LCG_2</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><br>flag = <span class="hljs-string">b&#x27;NSSCTF&#123;******&#125;&#x27;</span><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LCG</span>:<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, seed, a, b, m</span>):<br>        <span class="hljs-variable language_">self</span>.seed = seed  <span class="hljs-comment"># 初始种子</span><br>        <span class="hljs-variable language_">self</span>.a = a  <span class="hljs-comment"># 乘数</span><br>        <span class="hljs-variable language_">self</span>.b = b  <span class="hljs-comment"># 增量</span><br>        <span class="hljs-variable language_">self</span>.m = m  <span class="hljs-comment"># 模数</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">generate</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-variable language_">self</span>.seed = (<span class="hljs-variable language_">self</span>.a * <span class="hljs-variable language_">self</span>.seed + <span class="hljs-variable language_">self</span>.b) % <span class="hljs-variable language_">self</span>.m<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.seed<br><br><br>lcg = LCG(bytes_to_long(flag), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>), getPrime(<span class="hljs-number">256</span>))<br><br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(getPrime(<span class="hljs-number">16</span>)):<br>    lcg.generate()<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;m = <span class="hljs-subst">&#123;lcg.m&#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(lcg.generate())<br><span class="hljs-built_in">print</span>(lcg.generate())<br><span class="hljs-built_in">print</span>(lcg.generate())<br><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">m = 96343920769213509183566159649645883498232615147408833719260458991750774595569</span><br><span class="hljs-string">10252710164251491500439276567353270040858009893278574805365710282130751735178</span><br><span class="hljs-string">45921408119394697679791444870712342819994277665465694974769614615154688489325</span><br><span class="hljs-string">27580830484789044454303424960338587428190874764114011948712258959481449527087</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>解题代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> gmpy2<br><span class="hljs-keyword">import</span> libnum<br><br>m = <span class="hljs-number">96343920769213509183566159649645883498232615147408833719260458991750774595569</span><br>c1 = <span class="hljs-number">10252710164251491500439276567353270040858009893278574805365710282130751735178</span><br>c2 = <span class="hljs-number">45921408119394697679791444870712342819994277665465694974769614615154688489325</span><br>c3 = <span class="hljs-number">27580830484789044454303424960338587428190874764114011948712258959481449527087</span><br><br>a = (c3-c2) * gmpy2.invert(c2-c1,m) % m<br><span class="hljs-comment"># print(gmpy2.gcd(a,m))</span><br>a_1 = gmpy2.invert(a,m)<br>b = (c2-a*c1) % m<br><span class="hljs-comment"># print(gmpy2.gcd(b,m))</span><br>c = c1<br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>**<span class="hljs-number">16</span>):<br>    c = (c-b) * a_1 % m<br>    flag = libnum.n2s(<span class="hljs-built_in">int</span>(c))<br><br>    <span class="hljs-keyword">if</span> <span class="hljs-string">b&#x27;NSSCTF&#123;&#x27;</span> <span class="hljs-keyword">in</span> flag:<br>        <span class="hljs-built_in">print</span>(flag)<br>        <span class="hljs-keyword">break</span><br><span class="hljs-comment">#b&#x27;NSSCTF&#123;now_recover_a&#125;&#x27;</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="LCG-4：a、b、m都不知道，给出多组输出，让我们恢复初始种子"><a href="#LCG-4：a、b、m都不知道，给出多组输出，让我们恢复初始种子" class="headerlink" title="LCG_4：a、b、m都不知道，给出多组输出，让我们恢复初始种子"></a>LCG_4：a、b、m都不知道，给出多组输出，让我们恢复初始种子</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><br>flag = <span class="hljs-string">b&#x27;flag&#123;******&#125;&#x27;</span><br>seed = bytes_to_long(flag)<br>length = seed.bit_length()<br><br>a = getPrime(length)<br>b = getPrime(length)<br>p = getPrime(length)<br><br>output = []<br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">10</span>):<br>    seed = (a * seed + b) % p<br>    output.append(seed)<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;output =&quot;</span>, output)<br><span class="hljs-comment"># output = [168629567557403367186885420444281063317304797350594299096453254, 37810059304430144255796769528019631599115017008645572272676848, 153467674569619182399277890239200868986878351528697622090498978, 130441867851875429652192551507870248584806009516471536255184738, 165072061865233441980188465107233439530695291179218871834569574, 169462757174386331962049136282171771458712297105156982582248590, 5733544729623964834423742564305810327645521588143518180790467, 29307267147593660845277077949962969239999900796071055310564887, 167961532214306463210330398007557832141937447147319867665370457, 18070228848659542858848007252120157475238819346210716562665302]</span><br></code></pre></td></tr></table></figure>
+<p><strong>解题代码</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">import</span> gmpy2<br> <br><span class="hljs-comment"># a = getPrime(length)</span><br><span class="hljs-comment"># b = getPrime(length)</span><br><span class="hljs-comment"># p = getPrime(length)</span><br><br>output = [<span class="hljs-number">168629567557403367186885420444281063317304797350594299096453254</span>, <span class="hljs-number">37810059304430144255796769528019631599115017008645572272676848</span>, <span class="hljs-number">153467674569619182399277890239200868986878351528697622090498978</span>, <span class="hljs-number">130441867851875429652192551507870248584806009516471536255184738</span>, <span class="hljs-number">165072061865233441980188465107233439530695291179218871834569574</span>, <span class="hljs-number">169462757174386331962049136282171771458712297105156982582248590</span>, <span class="hljs-number">5733544729623964834423742564305810327645521588143518180790467</span>, <span class="hljs-number">29307267147593660845277077949962969239999900796071055310564887</span>, <span class="hljs-number">167961532214306463210330398007557832141937447147319867665370457</span>, <span class="hljs-number">18070228848659542858848007252120157475238819346210716562665302</span>]<br><br>gift = output<br><br>t = []<br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(gift) - <span class="hljs-number">1</span>):<br>    t.append(gift[i] - gift[i-<span class="hljs-number">1</span>])<br><br>all_p = []<br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(t) - <span class="hljs-number">2</span>):<br>    all_p.append(gmpy2.gcd((t[i+<span class="hljs-number">1</span>] * t[i-<span class="hljs-number">1</span>] - t[i] * t[i]), (t[i+<span class="hljs-number">2</span>] * t[i] - t[i+<span class="hljs-number">1</span>] * t[i+<span class="hljs-number">1</span>])))<br><br><span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> all_p:<br>    p = <span class="hljs-built_in">abs</span>(p)<br>    <span class="hljs-keyword">if</span> p == <span class="hljs-number">1</span>:<br>        <span class="hljs-keyword">continue</span><br>    <br>    <span class="hljs-comment">#求a</span><br>    MMI = <span class="hljs-keyword">lambda</span> A, n, s=<span class="hljs-number">1</span>, t=<span class="hljs-number">0</span>, N=<span class="hljs-number">0</span> : (n&lt;<span class="hljs-number">2</span> <span class="hljs-keyword">and</span> t%N <span class="hljs-keyword">or</span> MMI(n, A%n, t, s-A//n*t, N <span class="hljs-keyword">or</span> n), -<span class="hljs-number">1</span>)[n&lt;<span class="hljs-number">1</span>]  <span class="hljs-comment">#逆元计算</span><br>    a = (gift[<span class="hljs-number">2</span>] - gift[<span class="hljs-number">1</span>]) * MMI((gift[<span class="hljs-number">1</span>] - gift[<span class="hljs-number">0</span>]), p) % p<br>    <br>    <span class="hljs-comment">#求b</span><br>    b = (gift[<span class="hljs-number">1</span>] - a * gift[<span class="hljs-number">0</span>]) % p<br>    <br>    ani = MMI(a, p)<br>    seed = gift[<span class="hljs-number">0</span>]<br>    <br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>):<br>        seed = (ani * (seed - b)) % p<br>    <br>    <span class="hljs-built_in">print</span>(long_to_bytes(seed))<br><br><span class="hljs-comment"># b&#x27;\x02&#x27;</span><br><span class="hljs-comment"># b&#x27;\x02&#x27;</span><br><span class="hljs-comment"># b&#x27;\x17b\xd3\x03\xcaV\x95\x9a\xc5\xe7C\xa6\x1f\xa3\x88\xd5L\x02\xf5\xa9I\xb2\xce\x17/\xc7\xa6&#x27;</span><br><span class="hljs-comment"># b&#x27;\x1e\xb9I\xd93\xbd\x07\xcf\xbc\xbd\xe0\xf1\xf4\x18gB\xe8P\xfe;\x01B\xd2\xccy&gt;&#x27;</span><br><span class="hljs-comment"># b&#x27;\rj5\xb4\x19\xd9\xef\xa4\xee\xb0x\x08y\xc6\x0f\x81\x91@\xaf\x16\xd5\xaf\xdb\x8c)\xca\x9e&#x27;</span><br><span class="hljs-comment"># b&#x27;flag&#123;This_is_a_test_flag!&#125;&#x27;</span><br><span class="hljs-comment"># b&#x27;flag&#123;This_is_a_test_flag!&#125;&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>参考文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_74345946/article/details/132888135">LCG入门</a>,<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_45883223/article/details/115299389">LCG线性同余生成器</a></strong><br><strong>暂时只会这么多了，还有和格相关的算法，等格学明白了再补</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/LCG/" class="category-chain-item">LCG</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LCG/" class="print-no-link">#LCG</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>LCG学习</div>
+      <div>http://example.com/2024/02/28/LCG学习/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年2月28日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/03/02/AES%20Padding%20Oracle%20Attack/" title="AES Padding Oracle Attack">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AES Padding Oracle Attack</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/02/23/%E7%BB%B4%E7%BA%B3%E6%94%BB%E5%87%BB/" title="维纳攻击">
+                        <span class="hidden-mobile">维纳攻击</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

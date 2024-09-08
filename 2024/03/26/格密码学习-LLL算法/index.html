@@ -1,0 +1,845 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Lattice Learning概念格是几何空间中按照一定规则排列的无穷点的集合 定义：设 $b_1,b_2,…,b_m$ 是 $m$ 个线性无关的 $n$ 维向量（$n \geq m$），我们取 $c_i \in \mathbb{Z}$，则称以 $c_i$ 为组合系数的 $b_i$ 的线性组合所构成的集合称为 $n$ 维格，即： $$A &#x3D; L(b_1, b_2, \ldots, b_">
+<meta property="og:type" content="article">
+<meta property="og:title" content="格密码学习 LLL算法">
+<meta property="og:url" content="http://example.com/2024/03/26/%E6%A0%BC%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B9%A0-LLL%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Lattice Learning概念格是几何空间中按照一定规则排列的无穷点的集合 定义：设 $b_1,b_2,…,b_m$ 是 $m$ 个线性无关的 $n$ 维向量（$n \geq m$），我们取 $c_i \in \mathbb{Z}$，则称以 $c_i$ 为组合系数的 $b_i$ 的线性组合所构成的集合称为 $n$ 维格，即： $$A &#x3D; L(b_1, b_2, \ldots, b_">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bg/bannerimg9.jpg">
+<meta property="article:published_time" content="2024-03-26T08:00:14.000Z">
+<meta property="article:modified_time" content="2024-03-30T06:14:07.422Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="格密码">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/bg/bannerimg9.jpg">
+  
+  
+  
+  <title>格密码学习 LLL算法 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/bannerimg9.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="格密码学习 LLL算法"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-03-26 16:00" pubdate>
+          2024年3月26日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          52 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">格密码学习 LLL算法</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Lattice-Learning"><a href="#Lattice-Learning" class="headerlink" title="Lattice Learning"></a>Lattice Learning</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>格是几何空间中按照一定规则排列的无穷点的集合</strong></p>
+<p><strong>定义：设 $b_1,b_2,…,b_m$ 是 $m$ 个线性无关的 $n$ 维向量（$n \geq m$），我们取 $c_i \in \mathbb{Z}$，则称以 $c_i$ 为组合系数的 $b_i$ 的线性组合所构成的集合称为 $n$ 维格，即：</strong></p>
+<p>$$<br>A &#x3D; L(b_1, b_2, \ldots, b_m) &#x3D; {y | y &#x3D; \sum c_i b_i, c_i \in \mathbb{Z}}<br>$$</p>
+<p><strong>其中 $B &#x3D; (b_1, b_2, \ldots, b_m) \in \mathbb{Z}^{n \times m}$ 称为格 $A$ 的一个基，$m$ 称为格 $A$ 的秩，$n$ 称为格 $A$ 的维数。特别的当 $n&#x3D;m$ 时，称 $A$ 为 $n$ 维满秩格</strong></p>
+<p><strong>格 $A$ 的行列式可表示为 $\det(A)$，它是 $n$ 维空间中由格 $A$ 的基向量所生成的平行多面体 $P$ 的体积</strong></p>
+<p><strong>对于 $n$ 维满秩格，有 $\det(A) &#x3D; \sqrt{\det(B^T B)}$ ，我们一般研究的都是满秩格</strong></p>
+<h2 id="困难问题"><a href="#困难问题" class="headerlink" title="困难问题"></a>困难问题</h2><p><strong>主要有两个类，SVP及CVP</strong></p>
+<p><strong>SVP：寻找格L中最短的非零向量，即找到 v<sup>*</sup>∈L,对 ∀v∈L ，都有 ||v<sup>*</sup>|| &lt;&#x3D; ||v||</strong></p>
+<p><strong>CVP：对于一个非格L的向量Ω,在格中找向量v使得||Ω-v||最小</strong></p>
+<p><strong>还有一系列的基于这两个问题的近似问题，其中SVP及CVP问题被证明是NP-hard问题</strong></p>
+<h2 id="格攻击理论"><a href="#格攻击理论" class="headerlink" title="格攻击理论"></a>格攻击理论</h2><p><strong>（这篇文章主要讲的是LLL算法，主要用来解决SVP问题）</strong></p>
+<p><strong>这里的格攻击其实是一个启发式算法，所谓启发式可以大概理解为，你不能证明它是对的，但实际用起来有很好的效果的一些算法</strong></p>
+<p><strong>其中用到的最重要的一个东西是高斯启发式</strong></p>
+<p><img src="/img/bg/lattice2.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>先介绍几个工具再用这个式子</strong></p>
+<p><strong>基本域：设 B &#x3D; [b<sub>1</sub>，b<sub>2</sub>,…,b<sub>n-1</sub>] 为一组格基，则这组格基的基本域为</strong></p>
+<p><strong><center>F(b<sub>1</sub>，b<sub>2</sub> ,…, b<sub>n-1</sub>) &#x3D; {t<sub>0</sub>b<sub>0</sub> + … + t<sub>n-1</sub>b<sub>n-1</sub> (0&lt;&#x3D;t<sub>i</sub>&lt;1)}</center></strong></p>
+<p><strong>从图像上看，F 就是这个格里原点最近的其中“一格”，看图，比如二维中的栗子</strong></p>
+<p><img src="/img/bg/lattice3.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>后面会用到的是基本域的容积，从结果上看，基本域的容积等于格基的行列式（的绝对值），证明略，可以参考[HPS14]</strong></p>
+<p><strong><center>Vol(F) &#x3D; det(L(B))</center></strong></p>
+<p><strong>超球体：其实就是高维空间的球体，同样也需要用到它的容积</strong></p>
+<p><strong>设 B<sub>R</sub>(a) 为一个以点 a 为圆心，半径为 R 的 n 维球体，那么 B<sub>R</sub>(a) 的容积（或者说体积）为</strong></p>
+<p><img src="/img/bg/lattice4.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>这个式子有点复杂，所以一般除了维度较小的情况，不大会用这个式子，而是用它的估算值，在维度 n 足够大时，可以作以下估算</strong></p>
+<p><img src="/img/bg/lattice5.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>高斯说，一个以零点为圆心的超球体中格点的数量可以用格的基本域的容积估算</strong></p>
+<p><img src="/img/bg/lattice6.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>把上面式子中向量数量定为1，即可估算只含一个格点的超球半径，即上面高斯启发式的图中的σ(L)</strong><br><strong>PS：“只含一个格点”其实只是一个估算，实际上因为||v|| &#x3D; ||-v||，所以随便圈一个球里面应该都有偶数个非零格点</strong></p>
+<p><img src="/img/bg/lattice7.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>逆向思维一下就是说，长度短于σ(L)的格向量（约）只有一个，所以如果我们通过计算得到一个向量长度（约）小于σ(L)，那么大概率可以确定它是一个最短向量，在维度不高的情况下，可以用LLL把他求出来</strong></p>
+<p><strong>最后需要注意的是，这个方法只是一个启发式方法，在实际操作中能不能求到这个最短向量还需要考虑几个东西</strong></p>
+<ul>
+<li><strong>格的维度不能太高，不然LLL的准确度不能保证，而且LLL会用很长时间，然后是上面的容积估算也不能保证</strong></li>
+<li><strong>格需要“足够随机”，上面图也说了，这只是一个概率估算，所以需要足够随机，后面会说到一些不太随机的格基，比如背包的格和NTRU的格，在实际操作中，这两个问题的格基维度其实都不能太大</strong></li>
+</ul>
+<h2 id="格攻击应用"><a href="#格攻击应用" class="headerlink" title="格攻击应用"></a>格攻击应用</h2><p><strong>先用一个很简单的问题引入</strong></p>
+<p><strong>加密开始，Alice先选择一个大的正整数 q（不一定是素数）为一个公共参数作为公钥，并选择两个秘密的正整数 f,g 作为私钥，其中 f &lt; <sup>q</sup>&frasl;<sub>2</sub><sup>1&#x2F;2</sup>,<sup>q</sup>&frasl;<sub>4</sub><sup>1&#x2F;2</sup> &lt; g &lt; <sup>q</sup>&frasl;<sub>2</sub><sup>1&#x2F;2</sup> 且 gcd(f,q)&#x3D;1。</strong></p>
+<p><strong>然后，Alice可以计算 h ≡ f<sup>-1</sup>g (mod q) ，我们可以注意到 f , g 都小于 q<sup>1&#x2F;2</sup> ,也就是说 f , g 的数量级是O(q<sup>1&#x2F;2</sup>)的级别。而 h 的范围则是O(q)，在 q 很大的时候（比如 q &gt; 2256）时，h 可以说是远大于 f , g 的。这个 h 也将作为公钥。随后，Alice将公钥 q , h 公开。</strong></p>
+<p><strong>消息发送方Bob，对信息加密的时候，也需要用到2个参数：明文 m 和一个随机数 r ，其中 m &lt; <sup>q</sup>&frasl;<sub>4</sub><sup>1&#x2F;2</sup> , r &lt; <sup>q</sup>&frasl;<sub>2</sub><sup>1&#x2F;2</sup> ，然后他就可以计算密文 c ≡ rh + m (mod q)</strong></p>
+<p><strong>而收到密文后，Alice的解密过程如下：首先，他计算 a ≡ fc (mod q) 和 b ≡ ad (mod g)，其中 d 是 f 在模 g 意义下的逆元。而神奇的是，对于 a &#x3D; fc &#x3D; frh + fm &#x3D; frf<sup>-1</sup>g + fm &#x3D; rg + fm。然后，我们可以得到 b &#x3D; ad &#x3D; drg + dfm ≡ dfm (mod g)。又因为 df ≡ 1 (mod g)，所以我们最后算出来的 b &#x3D; m 就成立了。</strong></p>
+<p><strong>我们从攻击者角度来尝试破解密文</strong></p>
+<p><strong>有条件： f，g &lt; <sup>q</sup>&frasl;<sub>2</sub><sup>1&#x2F;2</sup>，gcd（f，qg）&#x3D; 1 和 h ≡ f<sup>-1</sup>g (mod q)，已知 (q,h)，求 (f,g)</strong></p>
+<p><strong>直接使用同余式构造格基好像有点困难，因为LLL规约使用的格基里面的元素都需要在 Z 上，所以不妨先把他展开，展开前先整理一下，因为现在我只知道 f 是小未知数，不能保证 f<sup>-1</sup> 也是小未知数，所以先消去逆，两边乘一下 f 即可，得到</strong></p>
+<p><strong><center>fh ≡ g (mod q)</center></strong></p>
+<p><strong>然后可以插入一个未知的 k，把同余式展开，习惯上我会把一个小的未知数放一边（如这里的 g ），方便后续构造格基</strong></p>
+<p><strong><center>hf - qk &#x3D; g</center></strong></p>
+<p><strong>构造格基的方法其实就是构造出线性方程组，如果你是像我这样把小未知数放等号右边的话，那么一般是等号左边有多少未知数就需要构造多少组方程。现在等号左边有 (f , k) 两个未知数，所以还需要多一个方程，在没有更多的条件可用的情况下，可以插入一些恒等式，比如 f &#x3D; f ，然后就可以得到</strong></p>
+<p><strong><center>1 · f - 0 · k &#x3D; f</strong><br><strong>h · f - q · k &#x3D; g</center></strong></p>
+<p><strong>把这组线性方程用矩阵-向量的形式表达出来</strong></p>
+<p>$$<br>\begin{pmatrix}<br>f &amp; -k<br>\end{pmatrix}<br>\begin{bmatrix}<br>1 &amp; h \\<br>0 &amp; q<br>\end{bmatrix}&#x3D;<br>\begin{pmatrix}<br>f &amp; g<br>\end{pmatrix}<br>$$</p>
+<p><strong>把上面的方程对应简写为 vB &#x3D; w</strong></p>
+<p><strong>首先很明显，v 中的 f 和 -k 都是整数，根据格的定义，w 是格基 B 中向量的整数线性组合，所以 w 是以 B 为格基的格 L(B) 中的一个格点</strong></p>
+<p><strong>接下来我会期望 w 是 L(B) 的最短向量，这就要用到上面说的估算方法，首先计算一下 w 的长度 ||w|| 和高斯的期望值 σ(L(B))</strong></p>
+<p><strong><center>||w|| &#x3D; (f<sup>2</sup> + g<sup>2</sup>)<sup>1&#x2F;2</sup> &lt; q<sup>1&#x2F;2</sup></strong><br><strong>σ(L(B)) ≈ det(L(B))<sup>1&#x2F;2</sup> &#x3D; q<sup>1&#x2F;2</sup></center></strong></p>
+<p><strong>于是就有 ||w|| &lt;&#x3D; σ(L(B))，根据前面分析，w 大概率为 L(B) 的最短向量，LLL即可解</strong></p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p><img src="/img/bg/lattice1.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>很明显，在这里的一组基是 &lt; i<sub>1</sub> ，i<sub>2</sub> &gt; ，最短向量是 i<sub>2</sub> ，Ω 的最近向量是 v</strong></p>
+<p><strong>来道简单的题目试一下</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> secret <span class="hljs-keyword">import</span> flag<br><br>m = bytes_to_long(flag)<br>bits = m.bit_length()<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;bits = &#125;</span>&#x27;</span>)<br><br>p = getPrime(bits)<br>q = getPrime(bits)<br><br>P = getPrime(bits * <span class="hljs-number">2</span>)<br>G = (m + p * P) % q<br>K = (G - m - p * P) // q<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;P = &#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;G = &#125;</span>&#x27;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&#x27;<span class="hljs-subst">&#123;K = &#125;</span>&#x27;</span>)<br><br><span class="hljs-comment"># bits = 335</span><br><span class="hljs-comment"># P = 3394270545570971690577979575406583864946510681585266672410991229280804004453396280771163168409087272659457277569002891388790000326756442550228492597287297623683499025514027403588117117896119108715160651</span><br><span class="hljs-comment"># G = 60963100282597524831359979973410096860944371822738298396641072874281201661416406035690627807291616264</span><br><span class="hljs-comment"># K = -1726680592929123430695060700728307617796590011101261305934490117807063551645884305573930787050237014785811531685576831658332832043539071312665804505405023375751155325879443489750916518257143502275697762</span><br></code></pre></td></tr></table></figure>
+<p><strong>分析G,K关系得到 G - m - pP &#x3D; qK</strong></p>
+<p><strong>构造格</strong></p>
+<p>$$<br>\begin{pmatrix}<br>q &amp; p<br>\end{pmatrix}<br>\begin{bmatrix}<br>K &amp; 0 \\<br>P &amp; 1<br>\end{bmatrix}&#x3D;<br>\begin{pmatrix}<br>G-m &amp; p<br>\end{pmatrix}<br>$$</p>
+<p><strong>如果(G - m, p)刚好是这个格的最短向量，我们就能通过LLL算法在已知K,P下求出(G - m, p)</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> sage.<span class="hljs-built_in">all</span> <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> long_to_bytes<br><br>P = <span class="hljs-number">3394270545570971690577979575406583864946510681585266672410991229280804004453396280771163168409087272659457277569002891388790000326756442550228492597287297623683499025514027403588117117896119108715160651</span><br>G = <span class="hljs-number">60963100282597524831359979973410096860944371822738298396641072874281201661416406035690627807291616264</span><br>K = -<span class="hljs-number">1726680592929123430695060700728307617796590011101261305934490117807063551645884305573930787050237014785811531685576831658332832043539071312665804505405023375751155325879443489750916518257143502275697762</span><br><br>B = Matrix(ZZ,[[K,<span class="hljs-number">0</span>],[P,<span class="hljs-number">1</span>]])<br><br>B = B.LLL()<br><br>m = G - B[<span class="hljs-number">0</span>][<span class="hljs-number">0</span>]<br><br><span class="hljs-built_in">print</span>(long_to_bytes(m))<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="背包问题"><a href="#背包问题" class="headerlink" title="背包问题"></a>背包问题</h2><p><strong>背包问题基于数学的子集和问题，是 Merkle 和 Hellman 在上世纪 70 年代做出的</strong></p>
+<p><strong>子集和问题：给定一个正整数集合 M &#x3D; （m<sub>1</sub>，m<sub>2</sub>，… ，m<sub>n</sub>），及整数S，求出（x<sub>1</sub>，x<sub>2</sub>，… ，x<sub>n</sub>），使得 ∑m<sub>i</sub>x<sub>i</sub> &#x3D; S</strong></p>
+<p><strong>举个例子：M &#x3D;（2,3,4,9,14,23），S &#x3D; （3,4,14），其和等于 21。显然，子集和问题可能有唯一解，可能无解，可能多解。我们只考虑至少有一个解的情况</strong></p>
+<p><strong>接下来，我们尝试利用子集和问题的困难性，构建一个公钥密码体系，取</strong></p>
+<p><strong><center>M &#x3D;（m<sub>1</sub>，m<sub>2</sub>，… ，m<sub>n</sub>）</center></strong></p>
+<p><strong>为公钥，Bob 想发送一条消息，于是将其编码为二进制向量 x &#x3D;（x<sub>1</sub>，x<sub>2</sub>，… ，x<sub>n</sub>），Bob计算</strong></p>
+<p><strong><center>S &#x3D; ∑m<sub>i</sub>x<sub>i</sub></center></strong></p>
+<p><strong>然后将 S 发送给 Alice，而 Alice 想要解密，必须找到一个合法的 x ，这等价于找到 M 的子集，使之和等于 S</strong></p>
+<p><strong>如果 Alice 能快速找到合法的 x 而敌手 Eve 找不到，那么这个密码体系就是有效的，可惜 Alice 并没有这种手段。这个密码体系中没有引入陷门信息，所以 Alice 解密与 Eve 解密的难度是一样的</strong></p>
+<p><strong>来考虑如何较快地解决子集和问题（尽管仍然是指数级的），这也是敌手能用上的最好的手段之一。Eve 把 M 划分成两半，然后对于左边那一半，枚举其所有子集 I ，记录子集和 A<sub>I</sub> ；对于右边，也同样操作，得到 B<sub>J</sub> ，如果存在一对 A<sub>I<sub>0</sub></sub> B<sub>J<sub>0</sub></sub>使得它们的和等于 S ，那我们就解决了问题。</strong></p>
+<p><strong>之前提到过，Alice 必须有陷门信息，才能快速完成解密，这个公钥密码方案才能有效。接下来我们讨论一种非常简单的子集和问题——超级递增序列上的子集和：</strong></p>
+<p><strong>超级递增序列：称一个序列 r &#x3D; （r<sub>1</sub>，r<sub>2</sub>，… ，r<sub>n</sub>）是超级递增序列，当且仅当满足</strong></p>
+<p><strong><center>∀ 1 &lt;&#x3D; i &lt;&#x3D; n-1 ，r<sub>i+1</sub> &#x3D;&gt; 2r<sub>i</sub></center></strong></p>
+<p><strong>也就是说，超级递增序列是指“后一个数比前一个数至少大一倍”的序列。显然就有性质</strong></p>
+<p><strong><center>r<sub>k</sub> &gt; ∑<sup>k-1</sup>r<sub>i</sub></center></strong></p>
+<p><strong>举个例子：有 $M &#x3D; (3,11,24,50,115)$ 是超级递增序列，$S &#x3D; 142$，那么首先检查 $142&gt;155$，故输出 $115$，$S$ 改为 $142-115&#x3D;27$。接下来 $50$ 被忽略，输出 $24$，$S$ 变为 $3$ 。共输出 $\text{115、24、3}$ ，生成 $x &#x3D; (1,0,1,0,1)$ ，完成解密。</strong></p>
+<p><strong>采用超级递增序列，Alice 是可以快速解密了；但敌手也可以。仍然没有起到添加陷门信息的作用。Merkle 和 Hellman 提出了下面的方案：</strong></p>
+<ol>
+<li><p><strong>Alice 生成一个超级递增序列 $r$，还选择两个保密的整数 $A,B$ 满足</strong></p>
+<p> $$<br> B &gt; 2r_n，gcd(A,B) &#x3D; 1<br> $$</p>
+</li>
+<li><p><strong>Alice 计算一个公钥序列</strong></p>
+<p> $$<br> M \equiv A \cdot r_i \pmod{B}<br> $$</p>
+<p> <strong>显然它不是超级递增序列。乘以 $A$ 起到了混淆的作用</strong></p>
+</li>
+<li><p><strong>Bob 要加密 $x$ ，他发送</strong></p>
+</li>
+</ol>
+<p>$$<br>S &#x3D; x \cdot M &#x3D; \sum_{i&#x3D;1}^{n} x_iM_i<br>$$</p>
+<ol start="4">
+<li><p><strong>Alice 要解密 $S$ ，首先计算出</strong></p>
+<p>$$<br>S’ &#x3D; A^{-1}S \pmod{B}<br>$$</p>
+<p><strong>然后 Alice 求子集和问题 $(r,S’)$ 的解，即可解密</strong><br><strong>要说明为什么新问题的解就是原问题的解。我们注意到</strong></p>
+<p>$$<br>S’ \equiv A^{-1} \sum_{i&#x3D;1}^{n} x_iM_i \equiv A^{-1} \sum_{i&#x3D;1}^{n} x_iAr_i \equiv  \sum_{i&#x3D;1}^{n} x_ir_i \pmod{B}<br>$$</p>
+<p><strong>而 $B$ 是一个非常大的数，故 $S$ 就是 $x \cdot r$ 的确切值</strong></p>
+</li>
+</ol>
+<p><strong>这套公钥加密体系，被称为子集和密码系统，或称背包密码。其核心思想是生成一个超级递增序列，然后用模线性运算进行混淆，将混淆之后的序列作为公钥</strong></p>
+<p><strong>接下来，我们看敌手 Eve 如何通过构造格来攻击背包密码。首先，她拿到公钥 $M &#x3D; (m_1,…,m_n)$ ，然后构造下面的格基</strong></p>
+<p>$$<br>\begin{pmatrix}<br>x_0,x_1,\ldots,x_{n-1},-1<br>\end{pmatrix}<br>\begin{bmatrix}<br>2 &amp; 0 &amp; 0 &amp; \ldots &amp; 0 &amp; m_1 \\<br>0 &amp; 2 &amp; 0 &amp; \ldots &amp; 0 &amp; m_2 \\<br>0 &amp; 0 &amp; 2 &amp; \ldots &amp; 0 &amp; m_3 \\<br>\vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots \\<br>0 &amp; 0 &amp; 0 &amp; \ldots &amp; 2 &amp; m_n \\<br>1 &amp; 1 &amp; 1 &amp; \ldots &amp; 1 &amp; S<br>\end{bmatrix} &#x3D;<br>\begin{pmatrix}<br>2x_0-1,2x_1-1,\ldots,2x_{n-1}-1,0<br>\end{pmatrix}<br>$$</p>
+<p><strong>现在我们使用LLL算法来尝试攻击背包密码，考虑下面问题：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">M = [<span class="hljs-number">816358673</span>, <span class="hljs-number">214551389</span>, <span class="hljs-number">683509053</span>, <span class="hljs-number">377954927</span>, <span class="hljs-number">461648693</span>, <span class="hljs-number">819009687</span>, <span class="hljs-number">833612683</span>, <span class="hljs-number">246393449</span>, <span class="hljs-number">258952137</span>, <span class="hljs-number">592274653</span>, <span class="hljs-number">439857687</span>, <span class="hljs-number">164289531</span>, <span class="hljs-number">138621939</span>, <span class="hljs-number">626982035</span>, <span class="hljs-number">733582939</span>, <span class="hljs-number">561376076</span>, <span class="hljs-number">206910526</span>, <span class="hljs-number">470721180</span>, <span class="hljs-number">1105393379</span>, <span class="hljs-number">848577580</span>]<br>msg = [<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">1</span>,<span class="hljs-number">0</span>]<br>S = <span class="hljs-number">6545130222</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>构建出格如下：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python">n = <span class="hljs-built_in">len</span>(M)<br>L = matrix.zero(n + <span class="hljs-number">1</span>)<br><br><span class="hljs-keyword">for</span> row, x <span class="hljs-keyword">in</span> <span class="hljs-built_in">enumerate</span>(M):<br>    L[row, row] = <span class="hljs-number">2</span><br>    L[row, -<span class="hljs-number">1</span>] = x<br><br>L[-<span class="hljs-number">1</span>, :] = <span class="hljs-number">1</span><br>L[-<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>] = S<br></code></pre></td></tr></table></figure>
+<p><strong>运行LLL算法</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python">res = L.LLL()<br><span class="hljs-built_in">print</span>(res)<br><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br><span class="hljs-string">[-1  1 -1 -1  1 -1  1 -1 -1  1 -1  1 -1 -1  1 -1  1 -1 -1  1  0]</span><br><span class="hljs-string">[ 2  2  0  2 -2 -2  2 -2  0  0 -4  2  0  0  0  0  0  0  0  0  0]</span><br><span class="hljs-string">[ 0  2  0  0  2 -4  0  2  0  0  4 -2  0  0  0  0  0  0  0  0  0]</span><br><span class="hljs-string">[-1 -1  1  1  1 -3 -1 -1  1 -1  3 -1 -1  1  3  1 -1  3  1 -1  3]</span><br><span class="hljs-string">[ 2  0  0  0  2  2  0 -2  2  0 -4  2  2 -2 -4  2  0  0  0  0  0]</span><br><span class="hljs-string">[-1 -1 -1  1  1  1  1 -1 -1  3 -3  1 -1 -1 -1  1 -1  3 -1 -3  2]</span><br><span class="hljs-string">[-4  2  0 -2  0  0  2  0  2  2  2 -2 -2  0  0 -2  0  0 -2 -2 -1]</span><br><span class="hljs-string">[-1  1  1  1  3 -1 -1 -1  3  1  1 -3 -1  1  1 -3  1 -1  1  1 -1]</span><br><span class="hljs-string">[ 1 -3  1  1 -1 -1  1 -1 -3  1 -1 -1 -5  1  1 -1  1  1  1  1  2]</span><br><span class="hljs-string">[ 3 -3 -1 -1  1  1 -3 -1 -1  5 -1 -1  1  1 -1  1 -1  1  1 -1  0]</span><br><span class="hljs-string">[ 0  2  0  2  4  0 -2  0 -4  0  0  0 -2  0  0 -2  0  0 -2 -2 -1]</span><br><span class="hljs-string">[ 2 -2  0  0  2  0 -2  0  0 -2 -4  4  0  0  0  0  0 -2 -2  0 -2]</span><br><span class="hljs-string">[ 1  1  1  1 -3 -3  3  1  3  1  1  1 -3 -3  1  1 -1  1  1 -1  0]</span><br><span class="hljs-string">[ 1 -1 -1 -1  1 -1 -3 -1 -1  1  1  1  1  3  3 -5  1  1 -1 -1  1]</span><br><span class="hljs-string">[-3  1 -3 -1  3  3  3 -1  1 -1  1 -1  1  1 -1  1 -1  1  1 -1  0]</span><br><span class="hljs-string">[ 0  0  2  0  0  0  0  2 -2 -2  2 -6  0  0  0 -2  0  0 -2 -2 -1]</span><br><span class="hljs-string">[ 0 -2  0 -4  2  0  2  2  0  2 -2  4 -2  0  0  0  0  2  2  0  2]</span><br><span class="hljs-string">[-2 -2 -2 -2  2  0 -2 -2  2  0  0  0  2  0  0 -2 -2  0 -2  4  2]</span><br><span class="hljs-string">[ 2 -2  0 -2 -4  0  2  0  0  0 -2  0 -2  2  0 -2 -4  0  0 -4  3]</span><br><span class="hljs-string">[-2  0  0 -2  0  0  0  0  0 -2 -4  0 -2 -2 -4  2  2  0  0 -2 -1]</span><br><span class="hljs-string">[ 1  1 -1  1  1 -1 -1 -1  1 -3 -1 -3 -3 -1  1  1  1  1 -1  1  3]</span><br><span class="hljs-string">&#x27;&#x27;&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>可以发现第一行的相反向量就是解</strong></p>
+<h2 id="拓展维纳攻击"><a href="#拓展维纳攻击" class="headerlink" title="拓展维纳攻击"></a>拓展维纳攻击</h2><p><strong>扩展维纳攻击来自<a target="_blank" rel="noopener" href="https://www.sci-hub.ren/https://link.springer.com/chapter/10.1007/3-540-46701-7_14">《Extending Wiener’s Attack in the Presence of Many Decrypting Exponents》</a>，相关题目在 CTF 中已经出现了，例如 2020 羊城杯的 Simple，但都是一些模板题，在这里记录一下拓展维纳攻击的原理</strong></p>
+<h3 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h3><h4 id="维纳的方法"><a href="#维纳的方法" class="headerlink" title="维纳的方法"></a>维纳的方法</h4><p><strong>维纳<code>Wiener</code>提出了一种关于私钥过小时对 $N$ 进行分解的一种方式。并给出了证明当</strong><br>$$<br>d &lt; \frac{1}{3}N^\frac{1}{4}<br>$$<br><strong>满足时 (还应满足 $q&lt;p&lt;2q$ ，因这里及后文主要是对私钥进行探讨，故忽略这类条件) 一定能够分解$N$</strong></p>
+<p><strong>以下为原论文中对于<code>Wiener&#39;s Approach</code>的部分描述，部分内容有删减，其实这里也就是维纳攻击的证明，所以要想更详细了解请再看维纳攻击的原理，这里我们主要后面要用到这里的<code>式1</code>，方法如下</strong></p>
+<p><strong>已知</strong><br>$$<br>e \cdot d - k \cdot \lambda(N) &#x3D; 1<br>$$</p>
+<p><strong>这里 $\lambda(N) &#x3D; \text{lcm}(p-1, q-1) &#x3D; \frac{\varphi(N)}{g} $, 令 $s&#x3D; 1 - p - q$ ，则有</strong></p>
+<p>$$<br>\begin{align*}<br>edg - kN &#x3D; g + ks &amp; (1)<br>\end{align*}<br>$$</p>
+<p><strong>将两边同时除以 $dgN$ 则有</strong></p>
+<p>$$<br>\frac{e}{N} - \frac{k}{dg} &#x3D; \frac{g + ks}{dgN} &#x3D; (\frac{k}{dg})(\frac{s}{N}) + \frac{1}{dN}<br>$$</p>
+<p><strong>我们知道在这里有 $e \approx N$，$s \approx N^{1&#x2F;2}$，所以有 $\frac{k}{dg} \approx 1$，则我们可以知道等式右边约等于 $N^{-1&#x2F;2}$，我们都知道当</strong></p>
+<p>$$<br>| x - \frac{a}{b} | &lt; \frac{1}{2b^2}<br>$$</p>
+<p><strong>时则 $\frac{a}{b}$ 是一个连分数近似（连分数定理），即能通过连分数展开覆盖</strong></p>
+<p><strong>所以当</strong></p>
+<p>$$<br>d &lt; \frac{\sqrt{2}}{2g}N^{\frac{1}{4}}<br>$$</p>
+<p><strong>时有 $\frac{k}{dg}$ 是 $\frac{e}{N}$ 的连分数近似，即能通过连分数展开覆盖</strong></p>
+<h4 id="Guo的方法"><a href="#Guo的方法" class="headerlink" title="Guo的方法"></a>Guo的方法</h4><p><strong>郭针对不止一个 $e$ 的情况进行研究，但是郭只研究了两个以及三个 $e$ 的情况</strong></p>
+<p><strong>对于两个 $e$ 的情况，我们可以考虑</strong></p>
+<p>$$<br>\begin{align*}<br>e_1d_1g - k_1(p-1)(q-1) &#x3D; g \\<br>e_2d_2g - k_2(p-1)(q-1) &#x3D; g<br>\end{align*}<br>$$</p>
+<p><strong>简单化简得到以下式子</strong></p>
+<p>$$<br>\begin{align*}<br>k_2d_1e_1 − k_1d_2e_2 &#x3D; k_2−k_1 &amp; (2)<br>\end{align*}<br>$$</p>
+<p><strong>两边同时除以 $k_2d_1e_2$</strong></p>
+<p>$$<br>\frac{e_1}{e_2} - \frac{k_1d_2}{k_2d_1} &#x3D; \frac{k_2 - k_1}{k_2d_1e_2}<br>$$</p>
+<p><strong>设 $d_i &lt; N^a$，则等式右边约等于 $N^{-1+a}$</strong><br><strong>则当</strong></p>
+<p>$$<br>2(k_2d_1)^2 &lt; N^{1+a}<br>$$</p>
+<p><strong>时 $\frac{k_1d_2}{k_2d_1}$ 是 $\frac{e_1}{e_2}$ 的连分数近似，当 $k_2$ 和 $d_1$ 最多为 $N^a$ ，而且 $g$ 很小时，得到</strong></p>
+<p>$$<br>\alpha &lt; \frac{1}{3} - \epsilon （\epsilon &gt; 0）<br>$$</p>
+<p><strong>然而即使我们得到了 $\frac{k_1d_2}{k_2d_1}$ ，还是无法分解 $N$ ，原文后面还讨论了 Guo 的提议，尝试对 $k_1d_2$ 进行分解，这里不再讲解</strong></p>
+<h4 id="拓展维纳攻击-1"><a href="#拓展维纳攻击-1" class="headerlink" title="拓展维纳攻击"></a>拓展维纳攻击</h4><p><strong>为了将分析扩展到 $n$ 个加密指数 $e_i$（解密指数 $d_i$ 很小），我们同时使用维纳和 Guo 的方法，我们将关系</strong></p>
+<p>$$<br>d_ige_i − k_iN &#x3D; g + k_is<br>$$</p>
+<p><strong>记为维纳等式 $W_i$ ，同样我们可以得到关系</strong></p>
+<p>$$<br>k_id_je_j − k_jd_ie_i &#x3D; k_i − k_j<br>$$</p>
+<p><strong>记为 Guo 等式</strong> $G_{i,j}$</p>
+<p><strong>我们假设 $d_i$ 和 $k_i$ 都小于 $N^{a_n}$ ，且 $g$ 很小，$s \approx N^{1&#x2F;2}$ ，可以注意到 $W_i$ 和 $G_i$ 的右侧非常小，实际上分别最多为 $N^{1&#x2F;2+a}$ 和 $N^a$</strong></p>
+<p><strong>原文中这里是定义了两个关系式以及指出了他们的大小范围，这个范围很重要也容容易分析处理，之后我们所做的其实就是使用这两个式子的不同复合关系去构造一个格，然后通过求其基向量得到 $\frac{d_1g}{k_1}$，从而可以算得 $\varphi(N)$ 并可以进一步的对 $N$ 进行分解</strong></p>
+<p><strong>其实到这里原理分析已经结束，关于格的构造其实也并不复杂，但是核心是这里的复合关系的选取，以及对于最后 $\alpha$ 大小的分析。</strong></p>
+<h3 id="两个小解密指数的情况"><a href="#两个小解密指数的情况" class="headerlink" title="两个小解密指数的情况"></a>两个小解密指数的情况</h3><p><strong>我们选取关系</strong> $W_1 , G_{1,2} , W_1W_2$<strong>，这样便有</strong></p>
+<p>$$<br>d_1ge_1 − k_1N &#x3D; g + k_1s \\<br>k_1d_2e_2 − k_2d_1e_1 &#x3D; k_1 − k_2 \\<br>d_1d_2g^2e_1e_2 − d_1gk_2e_1N − d_2gk_1e_2N + k_1k_2N^2 &#x3D; (g+k_1s)(g+k_2s)<br>$$</p>
+<p><strong>我们对第一个关系式乘上 $k_2$，这样左边便全是由 $d_1d_2g^2,d_1gk_2,d_2gk_1$ 和 $k_1k_2$ 构成，这样我们便可以用已知内容构造格将上述式子转化为矩阵运算</strong></p>
+<p>$$<br>\begin{pmatrix}<br>k_1k_2 &amp; d_1gk_2 &amp; d_2gk_1 &amp; d_1d_2g^2<br>\end{pmatrix}<br>\begin{bmatrix}<br>1 &amp; -N &amp; 0 &amp; N^2 \\<br>&amp; e_1 &amp; -e_1 &amp; -e_1N \\<br>&amp; &amp; e_2 &amp; -e_2N \\<br>&amp; &amp; &amp; e_1e_2<br>\end{bmatrix}&#x3D;<br>\begin{pmatrix}<br>k_1k_2 &amp; k_2(g+k_1s) &amp; g(k_1−k_2) &amp; (g+k_1s)(g+k_2s)<br>\end{pmatrix}<br>$$</p>
+<p><strong>等式右边向量的大小为 $N^{2α_2},N^{1&#x2F;2+2α_2},N^{α_2},N^{1+2α_2}$ , 为了让大小相等，我们可以考虑构造一个 $D$ 矩阵。</strong></p>
+<p>$$<br>D &#x3D;<br>\begin{bmatrix}<br>N &amp; &amp; &amp; \\<br>&amp; N^{1&#x2F;2} &amp; &amp; \\<br>&amp; &amp; N^{1+a_2} &amp; \\<br>&amp; &amp; &amp; 1<br>\end{bmatrix}<br>$$</p>
+<p><strong>最终我们构造的矩阵为</strong></p>
+<p>$$<br>L_2 &#x3D;<br>\begin{bmatrix}<br>1 &amp; -N &amp; 0 &amp; N^2 \\<br>&amp; e_1 &amp; -e_1 &amp; -e_1N \\<br>&amp; &amp; e_2 &amp; -e_2N \\<br>&amp; &amp; &amp; e_1e_2<br>\end{bmatrix} * D<br>$$</p>
+<p><strong>这样向量 $b &#x3D; \begin{pmatrix}k_1k_2 &amp; d_1gk_2 &amp; d_2gk_1 &amp;d_1d_2g^2\end{pmatrix}$ 便有</strong></p>
+<p>$$<br>|| bL_2 || &lt; 2N^{1 + 2\alpha_2}<br>$$</p>
+<p><strong>这也就是为什么前面需要构造 $D$ 矩阵的原因，给定 $D$ 矩阵后，我们可以得到一个上界，这样问题可以转化为类 SVP 问题</strong></p>
+<p><strong>那么这里的 $b$ 向量其实我们使用格基规约算法例如LLL便可以得到基向量 $b$，然后我们求解 $\frac{b_2}{b_1}$ 即得到 $\frac{d_1g}{k_1}$</strong></p>
+<p><strong>之后我们就可以得到</strong></p>
+<p>$$<br>\varphi(N) &#x3D; \frac{edg}{k} - \frac{g}{k} &#x3D; \left\lfloor \frac{edg}{k} \right\rfloor<br>$$</p>
+<p><strong>我们假设这些格中最短向量长度为 $\Delta^{1&#x2F;4-\epsilon}$，其中 $\Delta &#x3D; \det(L_2) &#x3D; N^{13&#x2F;2 + a_2}$，如果这些格是随机的，我们甚至几乎可以肯定没有格点比闵可夫斯基界（Minkowski’s bound）大，所以 $bL_2$ 是最短向量当</strong></p>
+<p>$$<br>N^{1+2a_2} &lt; \frac{1}{c_2}(N^{13&#x2F;2+a_2})^{1&#x2F;4}<br>$$</p>
+<p><strong>对于一些小的 $c_2$，如果有</strong></p>
+<p>$$<br>a_2 &lt; \frac{5}{14} - \epsilon’<br>$$</p>
+<p><strong>则我们可以通过格基规约找到向量b</strong></p>
+<h3 id="三个小解密指数的情况"><a href="#三个小解密指数的情况" class="headerlink" title="三个小解密指数的情况"></a>三个小解密指数的情况</h3><p><strong>对于三个指数的情况我们额外选取</strong>$G_{1,3} , W_1G_{2,3} , W_2G_{1,3}$</p>
+<p><strong>这样我们的向量 $b$ 为</strong></p>
+<p>$$<br>B &#x3D; \begin{pmatrix}<br>k_1k_2k_3 &amp; d_1gk_2k_3 &amp; k_1d_2gk_3 &amp; d_1d_2g^2k_3 &amp; k_1k_2d_3g &amp; k_1d_3g &amp; k_2d_3g &amp; d_1d_2d_3g^3<br>\end{pmatrix}<br>$$</p>
+<p><strong>然后我们便可以构造格</strong></p>
+<p>$$<br>L &#x3D;<br>\begin{bmatrix}<br>1 &amp; -N &amp; 0 &amp; N^2 &amp; 0 &amp; 0 &amp; 0 &amp; -N^3 \\<br>0 &amp; e_1 &amp; −e_1 &amp; −Ne_1 &amp; −e_1 &amp; 0 &amp; Ne_1 &amp; N^2e_1 \\<br>0 &amp; 0 &amp; e_2 &amp; −Ne_2 &amp; 0 &amp; Ne_2 &amp; 0 &amp; N^2e_2 \\<br>0 &amp; 0 &amp; 0 &amp; e_1e_2 &amp; 0 &amp; −e_1e_2 &amp; −e_1e_2 &amp; −Ne_1e_2 \\<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; e_3 &amp; −Ne_3 &amp; −Ne_3 &amp; N^2e_3 \\<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; e_1e_3 &amp; 0 &amp; −Ne_1e_3 \\<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; e_2e_3 &amp; −Ne_2e_3 \\<br>0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; e_1e_2e_3<br>\end{bmatrix}<br>$$</p>
+<p><strong>其中</strong></p>
+<p>$$<br>D &#x3D; \text{diag}\left(N^{\frac{3}{2}},N, N^{a + \frac{3}{2}},\sqrt{N}, N^{a + \frac{3}{2}}, N^{a + 1}, N^{a + 1}, 1\right)<br>$$</p>
+<p><strong>同样我们可以得到</strong></p>
+<p>$$<br>|| bL_2 || &lt; 2\sqrt{2}N^{\frac{3}{2} + 2\alpha_3}<br>$$</p>
+<p><strong>则当</strong></p>
+<p>$$<br>a_3 &lt; \frac{2}{5} - \epsilon’<br>$$</p>
+<p><strong>时可以通过格基规约求出向量b</strong></p>
+<p><strong>更多解密指数的情况可以看 <a href="(https://www.sci-hub.ren/https://link.springer.com/chapter/10.1007/3-540-46701-7_14)">论文</a> 或者 <a target="_blank" rel="noopener" href="https://ctf-wiki.org/crypto/asymmetric/rsa/d_attacks/rsa_extending_wiener/">CTF Wiki</a> (Xenny大佬编写的)了解</strong></p>
+<h3 id="EXP"><a href="#EXP" class="headerlink" title="EXP"></a>EXP</h3><p><strong>n &#x3D; 2 的时候的</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs python">e1 = ...<br>e2 = ...<br>N = ...<br>a = <span class="hljs-number">5</span>/<span class="hljs-number">14</span><br>D = diagonal_matrix(ZZ, [N, <span class="hljs-built_in">int</span>(N^(<span class="hljs-number">1</span>/<span class="hljs-number">2</span>)), <span class="hljs-built_in">int</span>(N^(<span class="hljs-number">1</span>+a)), <span class="hljs-number">1</span>])<br>M = matrix(ZZ, [[<span class="hljs-number">1</span>, -N, <span class="hljs-number">0</span>, N^<span class="hljs-number">2</span>], [<span class="hljs-number">0</span>, e1, -e1, -e1*N], [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, e2, -e2*N], [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, e1*e2]])*D<br>L = M.LLL()<br>t = vector(ZZ, L[<span class="hljs-number">0</span>])<br>x = t * M^(-<span class="hljs-number">1</span>)<br>phi = <span class="hljs-built_in">int</span>(x[<span class="hljs-number">1</span>]/x[<span class="hljs-number">0</span>]*e1)<br></code></pre></td></tr></table></figure>
+<p><strong>n &#x3D; 3 的时候的</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">懒得敲，看上面的例子根据<span class="hljs-number">2</span>的改就好了<br></code></pre></td></tr></table></figure>
+
+<h3 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h3><p><strong><code>2020羊城杯 Simple.py</code></strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> DES<br><span class="hljs-keyword">import</span> gmpy2<br><span class="hljs-keyword">from</span> secret <span class="hljs-keyword">import</span> flag<br><span class="hljs-keyword">import</span> random<br><br>key = <span class="hljs-string">&quot;abcdefgh&quot;</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">des_encrypt</span>(<span class="hljs-params">m</span>):<br>    des = DES.new(key, DES.MODE_ECB)<br>    res = des.encrypt(m)<br>    <span class="hljs-keyword">return</span> res<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">gen_key</span>():<br>    p = getPrime(<span class="hljs-number">2048</span>)<br>    q = getPrime(<span class="hljs-number">2048</span>)<br>    n = p * q<br>    bit = n.bit_length()<br>    phi_n = (p - <span class="hljs-number">1</span>) * (q - <span class="hljs-number">1</span>)<br>    num = random.randint(<span class="hljs-number">1</span>, <span class="hljs-number">100</span>)<br>    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:<br>        u = getPrime(bit / <span class="hljs-number">4</span> - num)<br>        <span class="hljs-keyword">if</span> gmpy2.gcd(u, phi_n) != <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">continue</span><br>        t = gmpy2.invert(u, phi_n)<br>        e = bytes_to_long(des_encrypt(long_to_bytes(t)))<br>        <span class="hljs-keyword">if</span> gmpy2.gcd(e, phi_n) == <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">break</span><br>    <span class="hljs-keyword">return</span> (n, e)<br><br>P = getPrime(<span class="hljs-number">1024</span>)<br>Q = getPrime(<span class="hljs-number">1024</span>)<br>N = P * Q<br>E = <span class="hljs-number">65537</span><br>lcm = gmpy2.lcm(P-<span class="hljs-number">1</span>, Q-<span class="hljs-number">1</span>)<br>e1 = gmpy2.invert(getPrime(<span class="hljs-number">730</span>), lcm)<br>e2 = gmpy2.invert(getPrime(<span class="hljs-number">730</span>), lcm)<br>m = bytes_to_long(flag)<br>c = <span class="hljs-built_in">pow</span>(m, E, N)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;N = &quot;</span> + <span class="hljs-built_in">str</span>(N)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;e2 = &quot;</span> + <span class="hljs-built_in">str</span>(e2)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;c = &quot;</span> + <span class="hljs-built_in">str</span>(c)<br>_n, _e = gen_key()<br>_c = <span class="hljs-built_in">pow</span>(e1, _e, _n)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;_n = &quot;</span> + <span class="hljs-built_in">str</span>(_n)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;_e = &quot;</span> + <span class="hljs-built_in">str</span>(_e)<br><span class="hljs-built_in">print</span> <span class="hljs-string">&quot;_c = &quot;</span> + <span class="hljs-built_in">str</span>(_c)<br><br><span class="hljs-comment"># N = 14922959775784066499316528935316325825140011208871830627653191549546959775167708525042423039865322548420928571524120743831693550123563493981797950912895893476200447083386549353336086899064921878582074346791320104106139965010480614879592357793053342577850761108944086318475849882440272688246818022209356852924215237481460229377544297224983887026669222885987323082324044645883070916243439521809702674295469253723616677245762242494478587807402688474176102093482019417118703747411862420536240611089529331148684440513934609412884941091651594861530606086982174862461739604705354416587503836130151492937714365614194583664241</span><br><span class="hljs-comment"># e2 = 27188825731727584656624712988703151030126350536157477591935558508817722580343689565924329442151239649607993377452763119541243174650065563589438911911135278704499670302489754540301886312489410648471922645773506837251600244109619850141762795901696503387880058658061490595034281884089265487336373011424883404499124002441860870291233875045675212355287622948427109362925199018383535259913549859747158348931847041907910313465531703810313472674435425886505383646969400166213185676876969805238803587967334447878968225219769481841748776108219650785975942208190380614555719233460250841332020054797811415069533137170950762289</span><br><span class="hljs-comment"># c = 6472367338832635906896423990323542537663849304314171581554107495210830026660211696089062916158894195561723047864604633460433867838687338370676287160274165915800235253640690510046066541445140501917731026596427080558567366267665887665459901724487706983166070740324307268574128474775026837827907818762764766069631267853742422247229582756256253175941899099898884656334598790711379305490419932664114615010382094572854799421891622789614614720442708271653376485660139560819668239118588069312179293488684403404385715780406937817124588773689921642802703005341324008483201528345805611493251791950304129082313093168732415486813</span><br><span class="hljs-comment"># _n = 440489238264900860776949063845200558734341182253911040104689726634414488997095518284964514078079911856352824174173937251558842251349762631716798307360995414545464514355957499460396352456341058329671470384493547042182238690727766731554287411757022792467324815342497916894285866240516524768645049867582541899123632009100512965460004548382054578461249990158442675234477122521189649316341623637146867589119951831385717513964941787562068891523060843170463600255518728070958509224053460041184869943038887434435024428311063533345514827827485121055022245800823723487812635502090530820946638405345755666124356919178290008475459419571761406117827422883820901663916276191422633940699113760516149002609672230610575442643822241126824287790055264162725209120192661985259423924307785452001927701323647247782658775780117642900694831475681037634691806232211286493187121464506122012889644137364079403183353774265910554863733455161820449073656744610495110838881353269890437984975607744603113572453211439334880155671730821755361054781243639407912133971530394031933785051770725331242932929244719594830548310768937037042243794551163891451545574837838357398072638709907958216067999891842395376953596940377457308329336524488962532620850237570279134567668379</span><br><span class="hljs-comment"># _e = 861605654852236668414010386016782729745549477722901970933220380452652052018502113737968204529790495739233258572209422774257139256367928649554562561889013164344608269555777150446651170697255381344437283003508476336814132594917061838422072660017477530465048729471603537912401826065081663165440462979219418291010867656746870617893935758241591032350010782861988742885918015532494020406350897048575155800941991107973433915573030255070411073793489218782862225921465295055907689734413881263179029741870520797816282420230090879687287575328294171448819803530205292587159921154471289747571107461754730577787617451127061265552788125691266357724955508391085485034126227212788895416902189479587194999818764639403752596165043883295506465916277734482380252399557395621566461322664559344483889187037851178431011220134914560438657522787409632677020269086895142488669203469256629173438313487046130238010206678820035631793666627274457756812810094004185303422637897314225624079032617334487815628021058997628511963565055629435278956251869329025544623291223984190562109149316159243565323565271491356378189561005084676592786453581431393651385181326525455441155960432946682976515756161038293313433862078763004704003356983371787414787104076401121444383911561</span><br><span class="hljs-comment"># _c = 305937839546594439230463861584604201077374759167468410827830943528403007941779658881672477705113617614828611332427199124217887937391378281943856159571057598203709366891547401974326016980711130197275312149966105151573748299654404630150641461765232935912266448303266990247145252052886920248198006212876273661195636104435277145396636985516064154534488750879453474211852461463041960835745695368577903786702607508492658563272121038693371752289017330781719235752018697635304458321008407930986565779826278048082764754367267460637798512780153281325733348999426407049795270044819657399403071013496169060640127279409914638535996355848933378734045908205536540619564723586905257569498716707820544351092379516465943537383422680357333849248129118148543389733395686399565999586899123087310025442994131218237679518267106194962305629529210402269726736072967966518381350920965727690274018080619332676536005722214955949897632990356174168234408837737546230730400434240785496100281815168806724358191550743656843853383646410487436540166360406982096949178466861150173527305369007546917550634679211293496458282787881244581230558011582720632502886494712233308474151958909251857281750741736910202763888790654287328846201724930302778996046434656839999091303411</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>首先这题分为两部分。第一部分是 gen_key() 以及后面的输出求出 e1，第二部分就是利用 e1,e2 求出 c</strong></p>
+<p><strong>第一部分的 t 可以直接DES解密求出来，然后又因为 u 满足 $u&lt;N^{0.25}$ 的条件，所以可以直接用wiener atttack分解出_n，从而求出e1</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> DES<br><span class="hljs-keyword">import</span> gmpy2<br><span class="hljs-keyword">from</span> sage.<span class="hljs-built_in">all</span> <span class="hljs-keyword">import</span> *<br>key = <span class="hljs-string">&quot;abcdefgh&quot;</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">des_decrypt</span>(<span class="hljs-params">m</span>):<br>    des = DES.new(key.encode(), DES.MODE_ECB)  <span class="hljs-comment"># Encode the key to bytes</span><br>    res = des.decrypt(m)<br>    <span class="hljs-keyword">return</span> res<br><span class="hljs-keyword">def</span> <span class="hljs-title function_">transform</span>(<span class="hljs-params">x, y</span>):  <span class="hljs-comment"># 使用辗转相处将分数 x/y 转为连分数的形式</span><br>    res = []<br>    <span class="hljs-keyword">while</span> y:<br>        res.append(x // y)<br>        x, y = y, x % y<br>    <span class="hljs-keyword">return</span> res<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">continued_fraction</span>(<span class="hljs-params">sub_res</span>):<br>    numerator, denominator = <span class="hljs-number">1</span>, <span class="hljs-number">0</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> sub_res[::-<span class="hljs-number">1</span>]:  <span class="hljs-comment"># 从sublist的后面往前循环</span><br>        denominator, numerator = numerator, i * numerator + denominator<br>    <span class="hljs-keyword">return</span> denominator, numerator  <span class="hljs-comment"># 得到渐进分数的分母和分子，并返回</span><br><br><br><span class="hljs-comment"># 求解每个渐进分数</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">sub_fraction</span>(<span class="hljs-params">x, y</span>):<br>    res = transform(x, y)<br>    res = <span class="hljs-built_in">list</span>(<span class="hljs-built_in">map</span>(continued_fraction, (res[<span class="hljs-number">0</span>:i] <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-built_in">len</span>(res)))))  <span class="hljs-comment"># 将连分数的结果逐一截取以求渐进分数</span><br>    <span class="hljs-keyword">return</span> res<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_pq</span>(<span class="hljs-params">a, b, c</span>):  <span class="hljs-comment"># 由p+q和pq的值通过维达定理来求解p和q</span><br>    par = gmpy2.isqrt(b * b - <span class="hljs-number">4</span> * a * c)  <span class="hljs-comment"># 由上述可得，开根号一定是整数，因为有解</span><br>    x1, x2 = (-b + par) // (<span class="hljs-number">2</span> * a), (-b - par) // (<span class="hljs-number">2</span> * a)<br>    <span class="hljs-keyword">return</span> x1, x2<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">wienerAttack</span>(<span class="hljs-params">e, n</span>):<br>    <span class="hljs-keyword">for</span> (d, k) <span class="hljs-keyword">in</span> sub_fraction(e, n):  <span class="hljs-comment"># 用一个for循环来注意试探e/n的连续函数的渐进分数，直到找到一个满足条件的渐进分数</span><br>        <span class="hljs-keyword">if</span> k == <span class="hljs-number">0</span>:  <span class="hljs-comment"># 可能会出现连分数的第一个为0的情况，排除</span><br>            <span class="hljs-keyword">continue</span><br>        <span class="hljs-keyword">if</span> (e * d - <span class="hljs-number">1</span>) % k != <span class="hljs-number">0</span>:  <span class="hljs-comment"># ed=1 (mod φ(n)) 因此如果找到了d的话，(ed-1)会整除φ(n),也就是存在k使得(e*d-1)//k=φ(n)</span><br>            <span class="hljs-keyword">continue</span><br><br>        phi = (e * d - <span class="hljs-number">1</span>) // k  <span class="hljs-comment"># 这个结果就是 φ(n)</span><br>        px, qy = get_pq(<span class="hljs-number">1</span>, n - phi + <span class="hljs-number">1</span>, n)<br>        <span class="hljs-keyword">if</span> px * qy == n:<br>            p, q = <span class="hljs-built_in">abs</span>(<span class="hljs-built_in">int</span>(px)), <span class="hljs-built_in">abs</span>(<span class="hljs-built_in">int</span>(qy))  <span class="hljs-comment"># 可能会得到两个负数，负负得正未尝不会出现</span><br>            <span class="hljs-keyword">return</span> p<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;该方法不适用&quot;</span>)<br><br>_n = <span class="hljs-number">440489238264900860776949063845200558734341182253911040104689726634414488997095518284964514078079911856352824174173937251558842251349762631716798307360995414545464514355957499460396352456341058329671470384493547042182238690727766731554287411757022792467324815342497916894285866240516524768645049867582541899123632009100512965460004548382054578461249990158442675234477122521189649316341623637146867589119951831385717513964941787562068891523060843170463600255518728070958509224053460041184869943038887434435024428311063533345514827827485121055022245800823723487812635502090530820946638405345755666124356919178290008475459419571761406117827422883820901663916276191422633940699113760516149002609672230610575442643822241126824287790055264162725209120192661985259423924307785452001927701323647247782658775780117642900694831475681037634691806232211286493187121464506122012889644137364079403183353774265910554863733455161820449073656744610495110838881353269890437984975607744603113572453211439334880155671730821755361054781243639407912133971530394031933785051770725331242932929244719594830548310768937037042243794551163891451545574837838357398072638709907958216067999891842395376953596940377457308329336524488962532620850237570279134567668379</span><br>_e = <span class="hljs-number">861605654852236668414010386016782729745549477722901970933220380452652052018502113737968204529790495739233258572209422774257139256367928649554562561889013164344608269555777150446651170697255381344437283003508476336814132594917061838422072660017477530465048729471603537912401826065081663165440462979219418291010867656746870617893935758241591032350010782861988742885918015532494020406350897048575155800941991107973433915573030255070411073793489218782862225921465295055907689734413881263179029741870520797816282420230090879687287575328294171448819803530205292587159921154471289747571107461754730577787617451127061265552788125691266357724955508391085485034126227212788895416902189479587194999818764639403752596165043883295506465916277734482380252399557395621566461322664559344483889187037851178431011220134914560438657522787409632677020269086895142488669203469256629173438313487046130238010206678820035631793666627274457756812810094004185303422637897314225624079032617334487815628021058997628511963565055629435278956251869329025544623291223984190562109149316159243565323565271491356378189561005084676592786453581431393651385181326525455441155960432946682976515756161038293313433862078763004704003356983371787414787104076401121444383911561</span><br>_c = <span class="hljs-number">305937839546594439230463861584604201077374759167468410827830943528403007941779658881672477705113617614828611332427199124217887937391378281943856159571057598203709366891547401974326016980711130197275312149966105151573748299654404630150641461765232935912266448303266990247145252052886920248198006212876273661195636104435277145396636985516064154534488750879453474211852461463041960835745695368577903786702607508492658563272121038693371752289017330781719235752018697635304458321008407930986565779826278048082764754367267460637798512780153281325733348999426407049795270044819657399403071013496169060640127279409914638535996355848933378734045908205536540619564723586905257569498716707820544351092379516465943537383422680357333849248129118148543389733395686399565999586899123087310025442994131218237679518267106194962305629529210402269726736072967966518381350920965727690274018080619332676536005722214955949897632990356174168234408837737546230730400434240785496100281815168806724358191550743656843853383646410487436540166360406982096949178466861150173527305369007546917550634679211293496458282787881244581230558011582720632502886494712233308474151958909251857281750741736910202763888790654287328846201724930302778996046434656839999091303411</span><br>_t = bytes_to_long((des_decrypt(long_to_bytes(_e))))<br>_p = wienerAttack(_t,_n)<br>_q = _n//_p<br>_d = gmpy2.invert(_e,(_p-<span class="hljs-number">1</span>)*(_q-<span class="hljs-number">1</span>))<br>e1 = <span class="hljs-built_in">pow</span>(_c,_d,_n)<br><span class="hljs-built_in">print</span> (e1)<br></code></pre></td></tr></table></figure>
+
+<p><strong>e1求出来后就按照拓展维纳攻击来做</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> gmpy2 <span class="hljs-keyword">import</span> invert<br>c  = <span class="hljs-number">6472367338832635906896423990323542537663849304314171581554107495210830026660211696089062916158894195561723047864604633460433867838687338370676287160274165915800235253640690510046066541445140501917731026596427080558567366267665887665459901724487706983166070740324307268574128474775026837827907818762764766069631267853742422247229582756256253175941899099898884656334598790711379305490419932664114615010382094572854799421891622789614614720442708271653376485660139560819668239118588069312179293488684403404385715780406937817124588773689921642802703005341324008483201528345805611493251791950304129082313093168732415486813</span><br>e2 = <span class="hljs-number">27188825731727584656624712988703151030126350536157477591935558508817722580343689565924329442151239649607993377452763119541243174650065563589438911911135278704499670302489754540301886312489410648471922645773506837251600244109619850141762795901696503387880058658061490595034281884089265487336373011424883404499124002441860870291233875045675212355287622948427109362925199018383535259913549859747158348931847041907910313465531703810313472674435425886505383646969400166213185676876969805238803587967334447878968225219769481841748776108219650785975942208190380614555719233460250841332020054797811415069533137170950762289</span><br>e1 = <span class="hljs-number">114552459553730357961013268333698879659007919035942930313432809776799669181481660306531243618160127922304264986001501784564575128319884991774542682853466808329973362019677284072646678280051091964555611220961719302320547405880386113519147076299481594997799884384012548506240748042365643212774215730304047871679706035596550898944580314923260982768858133395187777029914150064371998328788068888440803565964567662563652062845388379897799506439389461619422933318625765603423604615137217375612091221578339493263160670355032898186792479034771118678394464854413824347305505135625135428816394053078365603937337271798774138959</span><br>N  = <span class="hljs-number">14922959775784066499316528935316325825140011208871830627653191549546959775167708525042423039865322548420928571524120743831693550123563493981797950912895893476200447083386549353336086899064921878582074346791320104106139965010480614879592357793053342577850761108944086318475849882440272688246818022209356852924215237481460229377544297224983887026669222885987323082324044645883070916243439521809702674295469253723616677245762242494478587807402688474176102093482019417118703747411862420536240611089529331148684440513934609412884941091651594861530606086982174862461739604705354416587503836130151492937714365614194583664241</span><br>a  = <span class="hljs-number">0.356</span><span class="hljs-comment">#731./2049</span><br>M1=N**<span class="hljs-number">0.5</span><br>M2=N**(a+<span class="hljs-number">1</span>)<br>D = diagonal_matrix(ZZ,[N,M1,M2,<span class="hljs-number">1</span>])<br>M=matrix(ZZ,[[<span class="hljs-number">1</span>,-N,<span class="hljs-number">0</span>,N**<span class="hljs-number">2</span>],[<span class="hljs-number">0</span>,e1,-e1,-e1*N],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,e2,-e2*N],[<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,<span class="hljs-number">0</span>,e1*e2]])*D<br>L=M.LLL()<br>t=vector(ZZ,L[<span class="hljs-number">0</span>])<br>x=t*M**(-<span class="hljs-number">1</span>)<br>phi = <span class="hljs-built_in">int</span>(x[<span class="hljs-number">1</span>]/x[<span class="hljs-number">0</span>]*e1)<br>d = invert(<span class="hljs-number">0x10001</span>,phi)<br>m=<span class="hljs-built_in">pow</span>(c,d,N)<br><span class="hljs-built_in">print</span> long_to_bytes(m) <br></code></pre></td></tr></table></figure>
+<hr>
+<p><strong>参考：</strong><br><strong>[HPS14] Hoffstein J, Pipher J, Silverman J H, et al. An Introduction to Cryptography[M]. Springer New York, 2014.</strong><br><strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/oyrd/p/15835527.html">Lattice Learning1</a></strong><br><strong><a target="_blank" rel="noopener" href="https://tover.xyz/p/LLL-attack-equation/">格攻击之小未知数方程求解入门——原理与例子</a></strong><br><strong><a target="_blank" rel="noopener" href="https://huangx607087.online/2021/02/01/LatticeNotes1/#toc-heading-2">LatticeNotes1</a></strong><br><strong><a target="_blank" rel="noopener" href="https://www.ruanx.net/lattice-2/">格密码笔记（二）</a></strong><br><strong><a target="_blank" rel="noopener" href="https://ctf-wiki.org/crypto/asymmetric/rsa/d_attacks/rsa_extending_wiener/">CTF Wiki</a></strong><br><strong><a target="_blank" rel="noopener" href="https://www.sci-hub.ren/https://link.springer.com/chapter/10.1007/3-540-46701-7_14">《Extending Wiener’s Attack in the Presence of Many Decrypting Exponents》</a></strong><br><strong><a target="_blank" rel="noopener" href="https://blog.csdn.net/jcbx_/article/details/109306542">密码学硬核笔记——扩展维纳攻击</a></strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%A0%BC%E5%AF%86%E7%A0%81/" class="category-chain-item">格密码</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%A0%BC%E5%AF%86%E7%A0%81/" class="print-no-link">#格密码</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>格密码学习 LLL算法</div>
+      <div>http://example.com/2024/03/26/格密码学习-LLL算法/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年3月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/03/30/Babai%E7%AE%97%E6%B3%95/" title="Babai算法">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Babai算法</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/02/AES%20Padding%20Oracle%20Attack/" title="AES Padding Oracle Attack">
+                        <span class="hidden-mobile">AES Padding Oracle Attack</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

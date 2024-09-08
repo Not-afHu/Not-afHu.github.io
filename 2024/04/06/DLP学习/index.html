@@ -1,0 +1,856 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="离散对数问题 DLP（Discrete Logarithm Problem）做题时又被打爆了，记录一下DLP就是离散对数问题，离散对数是基于群之上的概念，先简单说下群 群定义假设有一个非空集合 $ G $ ，以及一个二元运算 $ \times $ 所构成的集合 $ (G, \times) $ ，如果满足以下条件就是一个群：  封闭性：$\forall a,b \in G , a \times b">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DLP学习">
+<meta property="og:url" content="http://example.com/2024/04/06/DLP%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="离散对数问题 DLP（Discrete Logarithm Problem）做题时又被打爆了，记录一下DLP就是离散对数问题，离散对数是基于群之上的概念，先简单说下群 群定义假设有一个非空集合 $ G $ ，以及一个二元运算 $ \times $ 所构成的集合 $ (G, \times) $ ，如果满足以下条件就是一个群：  封闭性：$\forall a,b \in G , a \times b">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bg/bannerimg11.jpg">
+<meta property="article:published_time" content="2024-04-06T11:14:03.000Z">
+<meta property="article:modified_time" content="2024-04-20T12:22:45.462Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="DLP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/bg/bannerimg11.jpg">
+  
+  
+  
+  <title>DLP学习 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/bannerimg11.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="DLP学习"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-04-06 19:14" pubdate>
+          2024年4月6日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          36 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">DLP学习</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="离散对数问题-DLP（Discrete-Logarithm-Problem）"><a href="#离散对数问题-DLP（Discrete-Logarithm-Problem）" class="headerlink" title="离散对数问题 DLP（Discrete Logarithm Problem）"></a>离散对数问题 DLP（Discrete Logarithm Problem）</h1><p><strong><del>做题时又被打爆了，记录一下</del></strong><br><strong>DLP就是离散对数问题，离散对数是基于群之上的概念，先简单说下群</strong></p>
+<h2 id="群"><a href="#群" class="headerlink" title="群"></a>群</h2><h3 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h3><p><strong>假设有一个非空集合 $ G $ ，以及一个二元运算 $ \times $ 所构成的集合 $ (G, \times) $ ，如果满足以下条件就是一个群：</strong></p>
+<ul>
+<li><strong>封闭性：$\forall a,b \in G , a \times b &#x3D; c \in G $</strong></li>
+<li><strong>结合律：$\forall a,b,c \in G , a \times (b \times c) &#x3D; (a \times b) \times c$</strong></li>
+<li><strong>单位元：$\exists e \in G,\forall a \in G , a \times e &#x3D; e \times a &#x3D; a$</strong></li>
+<li><strong>逆元：$\forall a \in G,\exists b \in G , a \times b &#x3D; b \times a &#x3D; e$</strong></li>
+</ul>
+<p><strong>此外，如果一个群还满足</strong> $\forall a,b \in G,a \times b &#x3D; b \times a$ <strong>则称 $ G $ 为交换群或者阿贝尔群</strong></p>
+<h3 id="有限群"><a href="#有限群" class="headerlink" title="有限群"></a>有限群</h3><p><strong>当一个群 $ G $ 中的元素只有有限个的时候，称其为有限群，其中群 $ G $ 的元素个数被称为群的阶或者基，记为 $|G|$</strong></p>
+<p><strong>例如：$ (\mathbb{Z_n},+) $ 就是由集合 $ \mathbb{Z_n} &#x3D; {0,1,…,n-1} $ 与整数模 n 加法构成的群，它的阶为 n</strong></p>
+<h3 id="元素的阶"><a href="#元素的阶" class="headerlink" title="元素的阶"></a>元素的阶</h3><p><strong>群 $ (G,\times) $ 内某个元素 $ a $ 的阶 ord(a) 是指满足以下条件的最小正整数 k</strong></p>
+<p>$$<br>a^k &#x3D; a \times a \times a \ldots \times a &#x3D; e<br>$$</p>
+<p><strong>e 是该群的单位元，值得注意的是 a^k 在群中不表示 a 的 k 次幂，而是将 a 进行 k 次群的二元运算</strong></p>
+<h3 id="循环群"><a href="#循环群" class="headerlink" title="循环群"></a>循环群</h3><p><strong>对于群</strong> $ G ,a \in G $ <strong>则</strong> $ \langle a \rangle &#x3D; {a^z|z \in \mathbb{Z}} $ <strong>是由</strong> $ a $ <strong>生成的</strong> $ G $ <strong>的子群</strong><br><strong>若</strong> $ g \in G,G &#x3D; \langle g \rangle $ <strong>,则称</strong> $ G $ <strong>是循环群，</strong> $ g $ <strong>是生成元（</strong> $ G $ <strong>是阿贝尔群）</strong></p>
+<h3 id="定理"><a href="#定理" class="headerlink" title="定理"></a>定理</h3><ul>
+<li><strong>对于每一个素数 $ p $ ，$(\mathbb{Z_p},*)$ 都是阿贝尔有限循环群</strong></li>
+<li><strong>假设 $G$ 是一个有限循环群，则对于每一个 $a \in G$ 都有：</strong><ul>
+<li><strong>$a^{|G|} &#x3D; e$</strong></li>
+<li><strong>ord(a)是 $G$ 的因子</strong></li>
+</ul>
+</li>
+<li><strong>拉格朗日定理：对于有限群 $G$ ，$H$ 是 $G$ 的任意子群，则 $|H|$ 是 $|G|$ 的因子</strong></li>
+<li><strong>n阶有限循环群 &lt;g&gt;， $\forall k \in \mathbb{Z}$ ，有 $g^k$ 的阶是 $\frac{n}{\gcd(n,k)}$</strong></li>
+</ul>
+<h2 id="DLP"><a href="#DLP" class="headerlink" title="DLP"></a>DLP</h2><p><strong>简单来说就是给定大素数</strong> $p$ ，$g \in \mathbb{Z_p^*}$ <strong>求解以下问题</strong></p>
+<p>$$y \equiv g^{x} \pmod{p}$$</p>
+<h3 id="DHKE"><a href="#DHKE" class="headerlink" title="DHKE"></a>DHKE</h3><p><strong>Diffle-Hellman 密钥协商算法</strong></p>
+<ol>
+<li><strong>系统参数建立</strong><ol>
+<li><strong>选择大素数 $p$ ，满足 $p-1$ 含有大素因子 $q$</strong></li>
+<li><strong>选取整数 $g(1&lt;g&lt;p)$ ，满足 $g$ 模 $p$ 的阶为 $q$</strong></li>
+</ol>
+</li>
+<li><strong>双方秘钥协商</strong><ol>
+<li><strong>Alice 随机秘密选取 $a(0&lt;a&lt;p-1)$ ，并计算</strong><br> $$A \equiv g^{a} \pmod{p}$$</li>
+<li><strong>Bob 随机秘密选取 $b(0&lt;b&lt;p-1)$ ，并计算</strong><br> $$B \equiv g^{b} \pmod{p}$$</li>
+<li><strong>Alice 将 $A$ 传送给 Bob，Bob 将 $B$ 传送给 Alice</strong></li>
+<li><strong>Alice 计算 $K \equiv B^{a} \pmod{p}$，Bob 计算 $K \equiv A^{b} \pmod{p}$</strong></li>
+</ol>
+</li>
+</ol>
+<p><strong>双方以 $K$ 为协商秘钥进行保密通信</strong><br><strong>事实上，有</strong><br>$$K \equiv A^{b} \equiv B^{a} \equiv g^{ab} \pmod{p}$$</p>
+<h3 id="DDH（判定性离散对数问题）"><a href="#DDH（判定性离散对数问题）" class="headerlink" title="DDH（判定性离散对数问题）"></a>DDH（判定性离散对数问题）</h3><p><strong>假如说 Alice 和 Bob 执行如上所述的 Diffie-Hellman 密钥协议,那么</strong> $ G,g,g^a,g^b $ <strong>都是公共的,</strong> $ g^{ab} $ <strong>是密钥.直观上,DDH问题就是是否对手能够从随机的</strong> $ G $ <strong>中的元素区分出 Alice 和 Bob 的密钥</strong> $ g^{ab} $<br><strong>正式来说:给定</strong> $ G,g,g^a,g^b $ <strong>和</strong> $ T_x $ <strong>使得</strong> $ T_0 $ <strong>是</strong> $ G $ <strong>中随机的一个元素,</strong> $T_1 &#x3D; g^{ab} $ <strong>同时</strong> $ x $ <strong>被随机均匀的从{0,1}中选择,找出 $x$</strong></p>
+<p><strong>贴道例题，<del>悄悄从别的平台上面修改过来的</del></strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">import</span> random<br><br>FLAG = <span class="hljs-string">&quot;flag&#123;this_is_a_test_flag&#125;&quot;</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">DDHgame</span>(<span class="hljs-params">m, p</span>):<br>    g = <span class="hljs-number">2</span><br>    a = random.randint(<span class="hljs-number">1</span>, p-<span class="hljs-number">1</span>)<br>    b = random.randint(<span class="hljs-number">1</span>, p-<span class="hljs-number">1</span>)<br>    c = a*b%(p-<span class="hljs-number">1</span>)<br>    ga = <span class="hljs-built_in">pow</span>(g, a, p)<br>    gb = <span class="hljs-built_in">pow</span>(g, b, p)<br>    gc = <span class="hljs-built_in">pow</span>(g, c, p)<br>    <span class="hljs-keyword">if</span> m:<br>        <span class="hljs-keyword">return</span> (ga, gb, gc)<br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-keyword">return</span> (ga, gb, random.randint(<span class="hljs-number">0</span>, p-<span class="hljs-number">1</span>))<br>    <br>p = getPrime(<span class="hljs-number">512</span>)<br>m = <span class="hljs-built_in">bin</span>(bytes_to_long(FLAG))[<span class="hljs-number">2</span>:]<br>challenge = []<br><span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> m:<br>    challenge.append(DDHgame(<span class="hljs-built_in">int</span>(i), p))<br><br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;p = &#125;</span>&quot;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">&#123;challenge = &#125;</span>&quot;</span>)<br></code></pre></td></tr></table></figure>
+
+<p><strong>这道例题简单的实现了DDH加密，在这里就是需要辨别gc和一个大小(0,p-1)的随机数哪一个是属于群内的，从而推断出m的二进制位</strong></p>
+<h3 id="Elgamal"><a href="#Elgamal" class="headerlink" title="Elgamal"></a>Elgamal</h3><p><strong>我们假设 A 发消息 m 给 B</strong></p>
+<p><strong>加密过程</strong></p>
+<ul>
+<li><strong>随机选择一个满足要求的大素数</strong> $p$ <strong>，并生成有限域</strong> $\mathbb{Z_p}$ <strong>的一个生成元</strong> $g \in \mathbb{Z_p^*}$</li>
+<li><strong>选择一个随机数</strong> $k(1&lt;k&lt;p-2)$ <strong>，计算</strong> $y \equiv g^{k} \pmod{p}$</li>
+<li><strong>其中私钥为</strong> $k$ <strong>公钥为</strong> $p,g,y$</li>
+<li>$A$ <strong>选取随机数</strong> $r \in \mathbb{Z_{p-1}}$ <strong>，对明文加密</strong> $E_k(m,r) &#x3D; (y_1,y_2)$ <strong>。其中</strong> $y_1 \equiv g^r \pmod{p}，y_2 \equiv my^r \pmod{p}$</li>
+</ul>
+<p><strong>解密过程</strong></p>
+<p>$D_k(y_1,y_2) &#x3D; y_2 (y_1^k)^{-1} \pmod{p} \equiv m(g^k)^r(g^{rk})^{-1} \equiv m \mod{p}$ </p>
+<p><strong>贴道题，<del>这个类型的题目好像经常出现（？）</del></strong><br><strong>2018 Code Blue lagalem（感谢CTF Wiki，每次例题都是上面扒下来的还有解析嘿嘿）</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> key <span class="hljs-keyword">import</span> FLAG<br><br>size = <span class="hljs-number">2048</span><br>rand_state = getRandomInteger(size // <span class="hljs-number">2</span>)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">keygen</span>(<span class="hljs-params">size</span>):<br>    q = getPrime(size)<br>    k = <span class="hljs-number">2</span><br>    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:<br>        p = q * k + <span class="hljs-number">1</span><br>        <span class="hljs-keyword">if</span> isPrime(p):<br>            <span class="hljs-keyword">break</span><br>        k += <span class="hljs-number">1</span><br>    g = <span class="hljs-number">2</span><br>    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:<br>        <span class="hljs-keyword">if</span> <span class="hljs-built_in">pow</span>(g, q, p) == <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">break</span><br>        g += <span class="hljs-number">1</span><br>    A = getRandomInteger(size) % q<br>    B = getRandomInteger(size) % q<br>    x = getRandomInteger(size) % q<br>    h = <span class="hljs-built_in">pow</span>(g, x, p)<br>    <span class="hljs-keyword">return</span> (g, h, A, B, p, q), (x,)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">rand</span>(<span class="hljs-params">A, B, M</span>):<br>    <span class="hljs-keyword">global</span> rand_state<br>    rand_state, ret = (A * rand_state + B) % M, rand_state<br>    <span class="hljs-keyword">return</span> ret<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">encrypt</span>(<span class="hljs-params">pubkey, m</span>):<br>    g, h, A, B, p, q = pubkey<br>    <span class="hljs-keyword">assert</span> <span class="hljs-number">0</span> &lt; m &lt;= p<br>    r = rand(A, B, q)<br>    c1 = <span class="hljs-built_in">pow</span>(g, r, p)<br>    c2 = (m * <span class="hljs-built_in">pow</span>(h, r, p)) % p<br>    <span class="hljs-keyword">return</span> (c1, c2)<br><br><span class="hljs-comment"># pubkey, privkey = keygen(size)</span><br><br>m = bytes_to_long(FLAG)<br>c1, c2 = encrypt(pubkey, m)<br>c1_, c2_ = encrypt(pubkey, m)<br><br><span class="hljs-built_in">print</span> pubkey<br><span class="hljs-built_in">print</span>(c1, c2)<br><span class="hljs-built_in">print</span>(c1_, c2_)<br></code></pre></td></tr></table></figure>
+
+<p><strong>可以看出，该算法就是一个 ElGamal 加密，给了同一个明文两组加密后的结果，其特点在于使用的随机数 r 是通过线性同余生成器生成的，则我们知道</strong></p>
+<p>$$<br>c_2 \equiv (m \cdot h^r) \mod p \<br>c_{2’} \equiv m \cdot h^{(Ar + B) \mod q} \equiv m \cdot h^{(Ar + B)} \pmod{p}<br>$$</p>
+<p><strong>则</strong></p>
+<p>$$<br>\frac{c_2^A*h^B}{c_{2’}} \equiv m^{A-1} \pmod{p}<br>$$</p>
+<p><strong>其中</strong> $c_2,c_{2’},A,B,h$ <strong>都知道，则我们知道</strong></p>
+<p>$$<br>m^{A-1} \equiv t \pmod{p}<br>$$</p>
+<p><strong>我们假设已知 p 的一个原根 g，则我们可以假设</strong></p>
+<p>$$<br>g^x \equiv t \<br>g^y \equiv m<br>$$</p>
+<p><strong>则</strong></p>
+<p>$$<br>g^{y(A-1)} \equiv g^x \pmod{p}<br>$$</p>
+<p><strong>则</strong></p>
+<p>$$<br>y(A-1) \equiv x \pmod{p-1} \<br>y(A-1) - k(p-1) &#x3D; x<br>$$</p>
+<p><strong>这里我们知道 A，p，x，则我们可以利用扩展欧几里得定理求得</strong></p>
+<p>$$<br>s(A−1)+w(p−1)&#x3D;gcd(A−1,p−1)<br>$$</p>
+<p><strong>如果 gcd(A-1,p-1)&#x3D;d，则我们直接计算</strong></p>
+<p>$$<br>t^s \equiv m^{s(A-1)} \equiv m^d \pmod{p}<br>$$</p>
+<p><strong>如果 d &#x3D; 1 ，就可以直接计算 m ，不为1计算就有点困难，在这里恰好为1</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> gmpy2<br>data = <span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;./transcript.txt&#x27;</span>).read().split(<span class="hljs-string">&#x27;\n&#x27;</span>)<br>g, h, A, B, p, q = <span class="hljs-built_in">eval</span>(data[<span class="hljs-number">0</span>])<br><br>c1, c2 = <span class="hljs-built_in">eval</span>(data[<span class="hljs-number">1</span>])<br>c1_, c2_ = <span class="hljs-built_in">eval</span>(data[<span class="hljs-number">2</span>])<br><br>tmp = gmpy2.powmod(c2, A, p) * gmpy2.powmod(h, B, p) * gmpy2.invert(c2_, p)<br>tmp = tmp % p<br><br><span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;t=&#x27;</span>, tmp<br><span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;A=&#x27;</span>, A<br><span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;p=&#x27;</span>, p<br>gg, x, y = gmpy2.gcdext(A - <span class="hljs-number">1</span>, p - <span class="hljs-number">1</span>)<br><span class="hljs-built_in">print</span> gg<br><br>m = gmpy2.powmod(tmp, x, p)<br><span class="hljs-built_in">print</span> <span class="hljs-built_in">hex</span>(m)[<span class="hljs-number">2</span>:].decode(<span class="hljs-string">&#x27;hex&#x27;</span>)<br></code></pre></td></tr></table></figure>
+
+<h3 id="Schnorr"><a href="#Schnorr" class="headerlink" title="Schnorr"></a>Schnorr</h3><ol>
+<li><strong>密钥生成</strong><ul>
+<li>选择一个大的素数 $p$ 和 $p-1$ 的一个大素数因子 $q$</li>
+<li>选择一个模 $p$ 的阶为 $q$ 的元素 $g$</li>
+<li>选择一个私钥 $x$ ，它是比 $q$ 小的随机数</li>
+<li>计算 $y &#x3D; g^x \mod p$ ， $y$ 就是对应的公钥</li>
+</ul>
+</li>
+<li><strong>签名生成</strong><ul>
+<li>选择一个随机数 $k &lt; q$ ，然后计算 $r &#x3D; g^k \mod p$ 和 $e &#x3D; H(r || M)$</li>
+<li>计算 $s &#x3D; k - xe \mod q$</li>
+<li>签名结果就是 $(s, e)$</li>
+</ul>
+</li>
+<li><strong>签名验证</strong><ul>
+<li>对于收到的签名 $(s, e)$ ，验证者执行以下过程</li>
+<li>计算 $r_v &#x3D; g^sy^e \mod p$</li>
+<li>计算 $e_v &#x3D; H(r_v || M)$</li>
+<li>如果 $e_v &#x3D;&#x3D; e$ ，那么验证通过，否则失败</li>
+<li>验证过程正确性：$r_v &#x3D; g^sy^e &#x3D; g^{s+xe} &#x3D; g^k &#x3D; r$</li>
+<li>所以 $e_v &#x3D; H(r_v||M) &#x3D; H(r||M) &#x3D; e$</li>
+</ul>
+</li>
+<li><strong>Schnorr群</strong><ul>
+<li>上述计算过程要求在一个有限群上进行，这个群的阶是 $q$, $q$ 如何得来？这就是Schnorr群的算法。 </li>
+<li>构造Schnorr群首先选择两个大素数：$p,q$ 满足：$p &#x3D; q*r + 1$</li>
+<li>$r$ 是大于1的整数，明显 $q$ 是 $p-1$ 的大素因子</li>
+<li>然后在 $(0,q)$ 之间找到一个 $h$ ，使得 $h^r \neq 1 \mod p$</li>
+<li>那么 $g &#x3D; h^r \neq 1 \mod p$ 是 $q$ 阶子群的生成元</li>
+<li>为什么以 $g$ 为生成元的群会有 $q$ 的阶呢？看下式：</li>
+<li>$g^q \equiv h^{rq} \equiv h^{p-1} \equiv 1 \mod p$</li>
+<li>这里用了费马小定理，表明了 $g$ 的阶只能是 $q$ 或者 $q$ 的因数，但因为 $h^r \neq 1 \mod p$ 并且 $q$ 是素数，所以 $g$ 的阶必定是 $q$</li>
+<li>这样生成的群就叫做Schnorr群，特点是 $q$ 素数阶，可以避免小子群攻击，且素数阶群必为循环群</li>
+</ul>
+</li>
+</ol>
+<h3 id="DSA"><a href="#DSA" class="headerlink" title="DSA"></a>DSA</h3><ol>
+<li><strong>密钥生成</strong><ul>
+<li>选择一个合适的哈希函数，目前一般选择SHA1，也可以选择强度更高的其他哈希函数</li>
+<li>选择秘钥的长度 $L$ 和 $N$ ，这两个值决定了签名的安全程度</li>
+<li>选择 $N$ 比特的素数 $q$ 和 $L$ 比特的素数 $p$ ，使得 $q$ 为 $p-1$ 的大素因子</li>
+<li>选择满足 $g^k &#x3D; 1 \mod p$ 的最小正整数 $k$ 为 $q$ 的 $g$ ，即在模 $p$ 下，$ord(g) &#x3D; q$ 的 $g$ 。即 $g$ 在模 $p$ 下，其指数次幂可以生成具有 $q$ 个元素的子群。这里可以计算 $g \equiv h^{\frac{p-1}{q}} \mod p$ 来得到 $g$ ，其中 $h \in (1,p-1)$</li>
+<li>选择私钥 $x \in (0,q)$ ，计算 $y \equiv g^x \pmod{p}$</li>
+<li>公钥为 $(p,q,g,y)$ ，私钥为 $(x)$</li>
+</ul>
+</li>
+<li><strong>签名生成</strong><ul>
+<li>随机选择整数 $k \in (0,q)$ </li>
+<li>计算 $r \equiv g^k \pmod{p} \pmod{q}$</li>
+<li>计算 $s \equiv (H(m) + xr)k^{-1} \pmod{q}$</li>
+<li>签名结果为 $(r,s)$</li>
+</ul>
+</li>
+<li><strong>签名验证</strong><ul>
+<li>计算辅助值 $w \equiv s^{-1} \pmod{q}$</li>
+<li>计算辅助值 $u_1 \equiv H(m) \cdot w \pmod{q} $</li>
+<li>计算辅助值 $u_2 \equiv r \cdot w \pmod{q} $</li>
+<li>计算 $v &#x3D; g^{u_1}y^{u_2} \pmod{q} \pmod{q}$</li>
+<li>如果 $v &#x3D;&#x3D; r$ 那么验证通过</li>
+</ul>
+</li>
+<li><strong>攻击</strong><ul>
+<li><strong>$k$ 复用</strong> </li>
+<li>如果在两次签名的过程中共享了 $k$ ，就可以进行攻击</li>
+<li>假设两次签名的消息为 $m_1$ 和 $m_2$ ，显然两个的 $r$ 一样，此外</li>
+<li>$s_1 &#x3D; (H(m_1) + xr)k^{-1} \pmod{q}$</li>
+<li>$s_2 &#x3D; (H(m_2) + xr)k^{-1} \pmod{q}$</li>
+<li>这里除了 $x$ 和 $k$ 不知道剩下的都知道，联立有 $k(s_1 - s_2) \equiv (H(m_1) - H(m_2)) \pmod{q}$</li>
+<li>此时可以解出 $k$ ，可以进一步解出 $x$</li>
+</ul>
+</li>
+</ol>
+<h2 id="离散对数求解方法"><a href="#离散对数求解方法" class="headerlink" title="离散对数求解方法"></a>离散对数求解方法</h2><h3 id="常规sage函数"><a href="#常规sage函数" class="headerlink" title="常规sage函数"></a>常规sage函数</h3><p><strong>参数说明：求解以<code>base</code>为底，<code>a</code>的对数；<code>ord</code>为<code>base</code>的阶，可以缺省，<code>operation</code>可以是<code>+</code>与<code>*</code>，默认为<code>*</code>；<code>bounds</code>是一个区间<code>(ld,ud)</code>，需要保证所计算的对数在此区间内</strong></p>
+<ul>
+<li><code>discrete_log(a,base,ord,operation)</code> <strong>通用的</strong></li>
+<li><code>discrete_log_rho(a,base,ord,operation)</code> <strong>Pollard-Rho算法</strong></li>
+<li><code>discrete_log_lambda(a,base,bounds,operation)</code> <strong>Pollard-kangaroo算法（也称为lambda算法）</strong></li>
+<li><code>sage.groups.generic.bsgs(a, b, bounds, operation=&#39;*&#39;)</code> <strong>小步大步法</strong></li>
+</ul>
+<h3 id="BSGS算法"><a href="#BSGS算法" class="headerlink" title="BSGS算法"></a>BSGS算法</h3><p><strong>这一方法通常被称为小步大步法，这一方法使用了中间相遇攻击的思想</strong></p>
+<p><strong>我们可以令</strong> $x &#x3D; im + j$ <strong>,其中</strong> $m &#x3D; \lceil \sqrt{n} \rceil$ <strong>那么整数</strong> $i$ <strong>和</strong> $j$ <strong>都在</strong> $0$ <strong>到</strong> $m$ <strong>的范围内，因此</strong></p>
+<p>$$<br>y &#x3D; g^x &#x3D; g^{im + j}<br>$$</p>
+<p><strong>也就是</strong></p>
+<p>$$<br>y(g^{-m})^i &#x3D; g^j<br>$$</p>
+<p><strong>那么我们就可以枚举所有的</strong> $j$ <strong>进行计算，并将其存储到一个集合</strong> $S$ <strong>中，然后我们再次枚举</strong> $i$ <strong>计算</strong> $y(g^{-m})^i$ <strong>，一旦我们发现计算的结果在集合</strong> $S$ <strong>中，则说明我们得到了一个碰撞，进而得到了</strong> $i$ <strong>和</strong> $j$</p>
+<p><strong>其中</strong></p>
+<ul>
+<li>每一次 $j$ 的增加表示”baby-step” ，一次乘上 $g$</li>
+<li>每一次 $i$ 的增加表示”giant-step” ，一次乘上 $g^{-m}$<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">bsgs</span>(<span class="hljs-params">g, y, p</span>):<br>    m = <span class="hljs-built_in">int</span>(ceil(sqrt(p - <span class="hljs-number">1</span>)))<br>    S = &#123;<span class="hljs-built_in">pow</span>(g, j, p): j <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m)&#125;<br>    gs = <span class="hljs-built_in">pow</span>(g, p - <span class="hljs-number">1</span> - m, p)<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):<br>        <span class="hljs-keyword">if</span> y <span class="hljs-keyword">in</span> S:<br>            <span class="hljs-keyword">return</span> i * m + S[y]<br>        y = y * gs % p<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br></code></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="拓展BSGS算法"><a href="#拓展BSGS算法" class="headerlink" title="拓展BSGS算法"></a>拓展BSGS算法</h3><p><strong>还是同样的问题，求解</strong> $a^x \equiv b \mod p$ <strong>,但是</strong> $p$ <strong>非质数怎么办呢，也就是说可能</strong> $a,p$ <strong>可能不互质，那么我们就需要想办法转换成为互质的，然后使用普通BSGS求解</strong></p>
+<p><strong>将同余式转换：</strong> $sa^x + tp &#x3D; b$</p>
+<p><strong>令</strong> $d_1 &#x3D; gcd(a,p)$ <strong>，即</strong> $d_1(sa^{x-1}\frac{a}{d_1} + t\frac{p}{d_1}) &#x3D; b$</p>
+<p><strong>此时，若</strong> $d_1 \nmid b$ <strong>那么无整数解</strong></p>
+<p><strong>我们在能够整除的情况下继续研究，即</strong></p>
+<p>$$<br>sa^{x-1}\frac{a}{d_1} + t\frac{p}{d_1} &#x3D; \frac{b}{d_1} \<br>a^{x-1}\frac{a}{d_1} \equiv \frac{b}{d_1} \pmod{\frac{p}{d_1}}<br>$$</p>
+<p><strong>此时若</strong> $a$ <strong>与</strong> $\frac{p}{d_1}$ <strong>仍不互质，那么继续上述的转换，令</strong> $d_2 &#x3D; gcd(a,\frac{p}{d_1})$</p>
+<p>$$<br>\frac{a}{d_1d_2}\cdot a^{x-2} \equiv \frac{b}{d_1d_2} \pmod{\frac{p}{d_1d_2}}<br>$$</p>
+<p><strong>同理不断处理，直到</strong> $gcd(a,\frac{p}{d_1d_2\dots d_k}) &#x3D; 1$</p>
+<p><strong>记</strong> $D &#x3D;  \prod_{i&#x3D;1}^{k} d_i $</p>
+<p>$$<br>\frac{a}{D^k}\cdot a^{x-k} \equiv \frac{b}{D} \pmod{\frac{p}{D}}<br>$$</p>
+<p><strong>这样，把</strong> $\frac{a^k}{D}$ <strong>通过逆元丢到方程右边就可以用普通BSGS求解了</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;bits/stdc++.h&gt;</span></span><br><span class="hljs-keyword">using</span> <span class="hljs-keyword">namespace</span> std;<br><span class="hljs-keyword">typedef</span> <span class="hljs-type">long</span> <span class="hljs-type">long</span> ll;<br> <br><span class="hljs-function"><span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title">gcd</span><span class="hljs-params">(<span class="hljs-type">int</span> a,<span class="hljs-type">int</span> b)</span></span>&#123;<br>    <span class="hljs-keyword">if</span>(!b)<br>        <span class="hljs-keyword">return</span> a;<br>    <span class="hljs-keyword">else</span>&#123;<br>        <span class="hljs-keyword">while</span>(<span class="hljs-type">int</span> i=a%b)&#123;<br>            a=b;<br>            b=i;<br>        &#125;<br>        <span class="hljs-keyword">return</span> b;<br>    &#125;<br>&#125;<br> <br><span class="hljs-function"><span class="hljs-keyword">inline</span> <span class="hljs-type">int</span> <span class="hljs-title">qpow</span><span class="hljs-params">(ll a,<span class="hljs-type">int</span> n,<span class="hljs-type">int</span> m)</span> </span>&#123;<br>    <span class="hljs-comment">//这个快速幂保证p不是1，少模一次是一次</span><br>    ll s=<span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">while</span>(n) &#123;<br>        <span class="hljs-keyword">if</span>(n&amp;<span class="hljs-number">1</span>)<br>            s=s*a%m;<br>        a=a*a%m;<br>        n&gt;&gt;=<span class="hljs-number">1</span>;<br>    &#125;<br>    <span class="hljs-keyword">return</span> s;<br>&#125;<br> <br>unordered_map&lt;<span class="hljs-type">int</span>,<span class="hljs-type">int</span>&gt; M;<br><span class="hljs-comment">//要求a,n互质 a^x=b mod n .k,t是留给exbsgs调用的</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">bsgs</span><span class="hljs-params">(<span class="hljs-type">int</span> a,<span class="hljs-type">int</span> b,<span class="hljs-type">int</span> n,<span class="hljs-type">int</span> k=<span class="hljs-number">1</span>,<span class="hljs-type">int</span> t=<span class="hljs-number">0</span>)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span>(b==<span class="hljs-number">1</span>)<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    M.<span class="hljs-built_in">clear</span>();<br>    <span class="hljs-type">int</span> m=<span class="hljs-built_in">ceil</span>(<span class="hljs-built_in">sqrt</span>(n));<br>    ll s=b;<span class="hljs-comment">//BS</span><br>    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>; i&lt;m; i++,s=s*a%n)<br>        M[s]=i;<br> <br>    s=k;<span class="hljs-comment">//GS</span><br>    k=<span class="hljs-built_in">qpow</span>(a,m,n);<br>    <span class="hljs-keyword">for</span>(ll i=<span class="hljs-number">1</span>; i&lt;=m; i++) &#123;<br>        s=s*k%n;<br>        <span class="hljs-keyword">if</span>(M.<span class="hljs-built_in">count</span>(s))<br>            <span class="hljs-keyword">return</span> i*m-M[s]+t;  <span class="hljs-comment">//这样就保证找到的是最小解了</span><br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>&#125;<br> <br><span class="hljs-comment">//a^x=b mod n</span><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">exbsgs</span><span class="hljs-params">(<span class="hljs-type">int</span> a,<span class="hljs-type">int</span> b,<span class="hljs-type">int</span> n)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span>(b==<span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>    &#125;<br>    <span class="hljs-type">int</span> d=<span class="hljs-built_in">gcd</span>(a,n),k=<span class="hljs-number">1</span>,t=<span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span>(d^<span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-keyword">if</span>(b%d) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;<br>        &#125;<br>        ++t;<br>        b/=d;<br>        n/=d;<br>        k=(ll)k*(a/d)%n;<br>        <span class="hljs-keyword">if</span>(b==k) &#123;<br>            <span class="hljs-keyword">return</span> t;<br>        &#125;<br>        d=<span class="hljs-built_in">gcd</span>(a,n);<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">bsgs</span>(a,b,n,k,t);<br>&#125;<br> <br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">int</span> a,b,n;<br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>) &#123;<br>        <span class="hljs-built_in">scanf</span>(<span class="hljs-string">&quot;%d%d%d&quot;</span>,&amp;a,&amp;n,&amp;b);<br>        <span class="hljs-keyword">if</span>(!a&amp;&amp;!n&amp;&amp;!b)<br>            <span class="hljs-keyword">break</span>;<br>        a%=n;<br>        b%=n;<br>        <span class="hljs-type">int</span> ans=<span class="hljs-built_in">exbsgs</span>(a,b,n);<br>        <span class="hljs-keyword">if</span>(ans==<span class="hljs-number">-1</span>)<br>            <span class="hljs-built_in">puts</span>(<span class="hljs-string">&quot;No Solution&quot;</span>);<br>        <span class="hljs-keyword">else</span><br>            <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%d\n&quot;</span>,ans);<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Pollard-Rho算法"><a href="#Pollard-Rho算法" class="headerlink" title="Pollard Rho算法"></a>Pollard Rho算法</h3><p><strong>原理和RSA里面的那个素数分解的Pollard Rho算法差不多，也是一个概率型的算法，适用于生成元的阶的素因子都是大数的情形</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">pollard_rho</span>(<span class="hljs-params">g, y, p</span>):<br>    q = (p-<span class="hljs-number">1</span>) // <span class="hljs-number">2</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">new_xab</span>(<span class="hljs-params">x, a, b,  g, y, p, q</span>):<br>        subset = x % <span class="hljs-number">3</span><br>        <span class="hljs-keyword">if</span> subset == <span class="hljs-number">0</span>:<br>            <span class="hljs-keyword">return</span> ((x*x) % p, (a*<span class="hljs-number">2</span>) % q, (b*<span class="hljs-number">2</span>) % q)<br>        <span class="hljs-keyword">if</span> subset == <span class="hljs-number">1</span>:<br>            <span class="hljs-keyword">return</span> ((x*g) % p, (a+<span class="hljs-number">1</span>) % q, b        )<br>        <span class="hljs-keyword">if</span> subset == <span class="hljs-number">2</span>:<br>            <span class="hljs-keyword">return</span> ((x*y) % p, a        , (b+<span class="hljs-number">1</span>) % q)<br>    x, a, b = <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span><br>    X, A, B = x, a, b<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, p):<br>        x, a, b = new_xab(x, a, b,  g, y, p, q)<br>        X, A, B = new_xab(X, A, B,  g, y, p, q)<br>        X, A, B = new_xab(X, A, B,  g, y, p, q)<br>        <span class="hljs-keyword">if</span> x == X:<br>            <span class="hljs-keyword">break</span><br>    res = ((a - A) * <span class="hljs-built_in">pow</span>(B - b, -<span class="hljs-number">1</span>, q)) % q<br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">pow</span>(g, res, p) == y:<br>        <span class="hljs-keyword">return</span> res<br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">pow</span>(g, res + q, p) == y:<br>        <span class="hljs-keyword">return</span> res + q<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br>g = <br>y = <br>p = <br>x = pollard_rho(g, y, p)<br><span class="hljs-built_in">print</span>(x)<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">pow</span>(g, x, p) == y)<br></code></pre></td></tr></table></figure>
+
+<h3 id="Pollard’s-kangaroo-algorithm算法"><a href="#Pollard’s-kangaroo-algorithm算法" class="headerlink" title="Pollard’s kangaroo algorithm算法"></a>Pollard’s kangaroo algorithm算法</h3><p><strong>如果我们知道</strong> $x$ <strong>的范围为</strong> $a \leq x \leq b$ <strong>那么我们可以以</strong> $O(\sqrt{b-a})$ <strong>的时间复杂度解决问题</strong></p>
+<ul>
+<li><code>discrete_log_lambda(a,base,bounds,operation)</code> <strong>sage里调用</strong></li>
+</ul>
+<h3 id="Pohlig-Hellman算法"><a href="#Pohlig-Hellman算法" class="headerlink" title="Pohlig-Hellman算法"></a>Pohlig-Hellman算法</h3><p><strong>只能用于求解光滑阶（即可以因子分解成较小的数的乘积）循环群上的离散对数</strong></p>
+<p><strong>对于DLP问题</strong> $a^x \equiv b \pmod{p}$ <strong>，因为</strong> $p$ <strong>是大素数，模</strong> $p$ <strong>的循环群的阶是</strong> $p-1$ <strong>，假设模</strong> $p$ <strong>的最小的本原元是</strong> $g$ <strong>，那么有</strong></p>
+<p>$$<br>a \equiv g^{a’} \pmod{p} \<br>b \equiv g^{b’} \pmod{p}<br>$$</p>
+<p><strong>就有</strong> $a’x \equiv b’ \pmod{p-1}$ <strong>，如果求出了</strong> $a’$ <strong>和</strong> $b’$ <strong>就可以通过拓展gcd来求出 x ，现在问题就变成了怎么求解</strong></p>
+<p>$$<br>a \equiv g^{a’} \pmod{p} \<br>b \equiv g^{b’} \pmod{p}<br>$$</p>
+<p><strong>以求解</strong> $a’$ <strong>为例，解DLP问题：</strong> $g^x \equiv a \pmod{p}$</p>
+<p><strong>将</strong> $p-1$ <strong>分解为素因子</strong> $p-1 &#x3D; \prod_{i&#x3D;1}^{m} p_i^{k_i} &#x3D; p_1^{k_1}p_2^{k_2} \dots p_m^{k_m}$</p>
+<p><strong>对于每一个素因子</strong> $p_i$ <strong>将</strong> $x$ <strong>表示成</strong> $p_i$ <strong>进制，有</strong></p>
+<p>$$<br>x &#x3D; a_0 + a_1p_1 + a_2p^2_2 + a_3p^3_3 + \dots + a_{k_i-1}p_i^{k_i-1} \pmod{p_i^{k_i}}<br>$$</p>
+<p><strong>这样的</strong> $p_i$ <strong>进制表示，系数</strong> $a_i$ <strong>自然是小于</strong> $p_i$ </p>
+<p><strong>令</strong> $r &#x3D; 1$ <strong>有</strong> $(g^x)^{\frac{p-1}{p_i^r}} \equiv a^{\frac{p-1}{p_i^r}} \pmod{p}$ <strong>，展开</strong> $x$ <strong>有</strong><br>$$<br>(g^{a_0 + a_1p_1 + a_2p^2_2 + a_3p^3_3 + \dots + a_{k_i-1}p_i^{k_i-1}})^{\frac{p-1}{p_i^r}} \equiv a^{\frac{p-1}{p_i^r}} \pmod{p}<br>$$</p>
+<p>$$<br>g^{a_0\frac{p-1}{p_i}} \cdot g^{a_1(p-1)} \cdot g^{a_2(p-1)p_i} \cdots g^{a_{k_i-1}(p-1)p_i^{k_i-2}} \equiv a^{\frac{p-1}{p_i^r}} \pmod{p}<br>$$</p>
+<p><strong>注意到从第二项开始，每一项都含有</strong> $p-1$ <strong>，费马小定理得</strong> $g^{p-1} \equiv 1 \pmod{p}$ <strong>原式变成：</strong></p>
+<p>$$<br>g^{a_0\frac{p-1}{p_i}} \equiv a^{\frac{p-1}{p_i^r}} \pmod{p}<br>$$</p>
+<p><strong>这个式子中只有</strong> $a_0$ <strong>是未知的，因为</strong> $a_o \in [0,p_i-1]$ <strong>所以可以枚举出</strong> $a_0$ <strong>的值</strong></p>
+<p><strong>再令</strong> $r &#x3D; 2,3,4, \cdots ,k_i$ <strong>重复上面的方法，枚举求出</strong> $a_1,a_2,\cdots,a_{k_i-1}$ <strong>可以得到</strong></p>
+<p>$$<br>x &#x3D; a_0 + a_1p_1 + a_2p^2_2 + a_3p^3_3 + \dots + a_{k_i-1}p_i^{k_i-1} \pmod{p_i^{k_i}}<br>$$</p>
+<p><strong>对于每一个素因子都有上述过程，最后可以得到 m 个关于</strong> $x$ <strong>的式子，用CRT就可以计算出</strong> $x$ <strong>的值，利用这个方法就可以求出</strong> $a’$ <strong>和</strong> $b’$</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># Baby-step Giant-step法</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">babystep_giantstep</span>(<span class="hljs-params">g, y, p, q=<span class="hljs-literal">None</span></span>):<br>    <span class="hljs-keyword">if</span> q <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:<br>        q = p - <span class="hljs-number">1</span><br>    m = <span class="hljs-built_in">int</span>(q**<span class="hljs-number">0.5</span> + <span class="hljs-number">0.5</span>)<br>    <span class="hljs-comment"># Baby step</span><br>    table = &#123;&#125;<br>    gr = <span class="hljs-number">1</span>  <span class="hljs-comment"># g^r</span><br>    <span class="hljs-keyword">for</span> r <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):<br>        table[gr] = r<br>        gr = (gr * g) % p<br>    <span class="hljs-comment"># Giant step</span><br>    <span class="hljs-keyword">try</span>:<br>        gm = <span class="hljs-built_in">pow</span>(g, -m, p)  <span class="hljs-comment"># gm = g^&#123;-m&#125;</span><br>    <span class="hljs-keyword">except</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br>    ygqm = y                <span class="hljs-comment"># ygqm = y * g^&#123;-qm&#125;</span><br>    <span class="hljs-keyword">for</span> q <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(m):<br>        <span class="hljs-keyword">if</span> ygqm <span class="hljs-keyword">in</span> table:<br>            <span class="hljs-keyword">return</span> q * m + table[ygqm]<br>        ygqm = (ygqm * gm) % p<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br><br><span class="hljs-comment"># Pohlig–Hellman法</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">pohlig_hellman_DLP</span>(<span class="hljs-params">g, y, p</span>):<br>    crt_moduli = []<br>    crt_remain = []<br>    <span class="hljs-keyword">for</span> q, _ <span class="hljs-keyword">in</span> factor(p-<span class="hljs-number">1</span>):<br>        x = babystep_giantstep(<span class="hljs-built_in">pow</span>(g,(p-<span class="hljs-number">1</span>)//q,p), <span class="hljs-built_in">pow</span>(y,(p-<span class="hljs-number">1</span>)//q,p), p, q)<br>        <span class="hljs-keyword">if</span> (x <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>) <span class="hljs-keyword">or</span> (x &lt;= <span class="hljs-number">1</span>):<br>            <span class="hljs-keyword">continue</span><br>        crt_moduli.append(q)<br>        crt_remain.append(x)<br>    x = crt(crt_remain, crt_moduli)<br>    <span class="hljs-keyword">return</span> x<br><br>g = <br>y = <br>p = <br>x = pohlig_hellman_DLP(g, y, p)<br><span class="hljs-built_in">print</span>(x)<br><span class="hljs-built_in">print</span>(<span class="hljs-built_in">pow</span>(g, x, p) == y)<br></code></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong><br><strong><a target="_blank" rel="noopener" href="https://learnblockchain.cn/article/1527">区块链中的数学-Schnorr 离散对数签名及素数阶群构造（Schnorr 群）</a></strong><br><strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/mumuhhh/p/17799384.html">crypto常用算法</a></strong><br><strong><a target="_blank" rel="noopener" href="https://lazzzaro.github.io/2020/05/07/crypto-%E7%A6%BB%E6%95%A3%E5%AF%B9%E6%95%B0/">离散对数(by Lazzaro)</a></strong><br><strong><a target="_blank" rel="noopener" href="https://ctf-wiki.org/crypto/asymmetric/discrete-log/discrete-log/#_1">离散对数(by CTF-Wiki)</a></strong><br><strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/jeefy/p/17055264.html">算法学习笔记(10): BSGS算法及其扩展算法</a></strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/DLP/" class="category-chain-item">DLP</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/DLP/" class="print-no-link">#DLP</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>DLP学习</div>
+      <div>http://example.com/2024/04/06/DLP学习/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年4月6日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/03/30/Babai%E7%AE%97%E6%B3%95/" title="Babai算法">
+                        <span class="hidden-mobile">Babai算法</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

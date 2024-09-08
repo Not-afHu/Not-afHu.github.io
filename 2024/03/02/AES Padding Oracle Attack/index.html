@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="John Doe">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="AES Padding Oracle Attack先回顾一下AES的CBC模式 加密：Ci &#x3D; Ek(Pi ⊕ Ci-1)C0 &#x3D; IV解密：Pi &#x3D; Dk(Ci ⊕ Ci-1)C0 &#x3D; IV CBC字节翻转攻击对于CBC模式的解密算法，每一组明文进行分组算法解密之后，需要和前一组的密文异或才能得到明文。第一组则是和初始向量IV进行异或。 CBC字节翻转攻击">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AES Padding Oracle Attack">
+<meta property="og:url" content="http://example.com/2024/03/02/AES%20Padding%20Oracle%20Attack/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="AES Padding Oracle Attack先回顾一下AES的CBC模式 加密：Ci &#x3D; Ek(Pi ⊕ Ci-1)C0 &#x3D; IV解密：Pi &#x3D; Dk(Ci ⊕ Ci-1)C0 &#x3D; IV CBC字节翻转攻击对于CBC模式的解密算法，每一组明文进行分组算法解密之后，需要和前一组的密文异或才能得到明文。第一组则是和初始向量IV进行异或。 CBC字节翻转攻击">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/bg/bannerimg7.jpg">
+<meta property="article:published_time" content="2024-03-02T01:35:38.000Z">
+<meta property="article:modified_time" content="2024-03-04T11:30:48.378Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="AES">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/bg/bannerimg7.jpg">
+  
+  
+  
+  <title>AES Padding Oracle Attack - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/bg/bannerimg7.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="AES Padding Oracle Attack"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-03-02 09:35" pubdate>
+          2024年3月2日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          73 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">AES Padding Oracle Attack</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="AES-Padding-Oracle-Attack"><a href="#AES-Padding-Oracle-Attack" class="headerlink" title="AES Padding Oracle Attack"></a>AES Padding Oracle Attack</h1><p><strong>先回顾一下AES的CBC模式</strong></p>
+<p><strong>加密：</strong><br><strong><center>C<sub>i</sub> &#x3D; E<sub>k</sub>(P<sub>i</sub> ⊕ C<sub>i-1</sub>)<br>C<sub>0</sub> &#x3D; IV</center></strong><br><strong>解密：</strong><br><strong><center>P<sub>i</sub> &#x3D; D<sub>k</sub>(C<sub>i</sub> ⊕ C<sub>i-1</sub>)<br>C<sub>0</sub> &#x3D; IV</center></strong></p>
+<h2 id="CBC字节翻转攻击"><a href="#CBC字节翻转攻击" class="headerlink" title="CBC字节翻转攻击"></a>CBC字节翻转攻击</h2><p><strong>对于CBC模式的解密算法，每一组明文进行分组算法解密之后，需要和前一组的密文异或才能得到明文。第一组则是和初始向量IV进行异或。</strong></p>
+<p><strong>CBC字节翻转攻击的核心原理是通过破坏一个比特的密文来篡改一个比特的明文。</strong></p>
+<p><strong>假设现在我们有第 N-1 组密文某一位的值 A ，以及第 N 组密文相同位置经过分组解密后的值 B ，于是我们能够很容易得到第 N 组该位置上的明文 C 。</strong><br><strong><center>A ⊕ B &#x3D; C</center></strong><br><strong>如果我们破坏第 N-1 组的密文 A ，将其与明文 C 进行异或运算，由异或的性质可以得到下式：</strong></p>
+<p><strong><center>A ⊕ C ⊕ B &#x3D; C ⊕ C &#x3D; 0</center></strong><br><strong>可以看见，现在计算出的明文变成0了，现在我们可以将明文随意更改成我们想要的字符。只需要在上一组的密文异或我们想要的字符即可，假设我们想将明文 C 更改为 X ，可以由下式得出：</strong></p>
+<p><strong><center>A ⊕ C ⊕ X ⊕ B &#x3D; C ⊕ C ⊕ X &#x3D; X</center></strong><br><strong>此时我们已经通过破坏密文将明文更改成我们想要的字符，具体攻击流程可以参考下图</strong></p>
+<p><img src="/img/bg/CBC.jpg" srcset="/img/loading.gif" lazyload alt="CBC字节翻转攻击流程"></p>
+<p><strong>用Python模拟一下攻击流程</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES<br><span class="hljs-keyword">import</span> uuid<br><span class="hljs-keyword">import</span> binascii<br> <br> <br>BS=AES.block_size  <span class="hljs-comment">#分组长度</span><br>key=<span class="hljs-string">b&#x27;test&#x27;</span>  <span class="hljs-comment">#密钥</span><br>iv=uuid.uuid4().<span class="hljs-built_in">bytes</span>  <span class="hljs-comment">#随机初始向量</span><br>pad=<span class="hljs-keyword">lambda</span> s: s+((BS-<span class="hljs-built_in">len</span>(s)%BS)*<span class="hljs-built_in">chr</span>(BS-<span class="hljs-built_in">len</span>(s)%BS)).encode()  <span class="hljs-comment">#Pkcs5Padding</span><br>data=<span class="hljs-string">b&#x27;1234567890abcdefabcdef1234567890&#x27;</span>  <span class="hljs-comment">#明文M</span><br> <br><span class="hljs-comment">#加密</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">enc</span>(<span class="hljs-params">data</span>):<br>    aes=AES.new(pad(key),AES.MODE_CBC,iv)<br>    ciphertext=aes.encrypt(pad(data))<br>    ciphertext=binascii.b2a_hex(ciphertext)<br>    <span class="hljs-keyword">return</span> ciphertext<br> <br><span class="hljs-comment">#解密</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">dec</span>(<span class="hljs-params">c</span>):<br>    c=binascii.a2b_hex(c)<br>    aes=AES.new(pad(key),AES.MODE_CBC,iv)<br>    data=aes.decrypt(c)<br>    <span class="hljs-keyword">return</span> data<br> <br><span class="hljs-comment">#测试CBC翻转</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">CBC_test</span>(<span class="hljs-params">c</span>):<br>    c=<span class="hljs-built_in">bytearray</span>(binascii.a2b_hex(c))<br>    c[<span class="hljs-number">0</span>]=c[<span class="hljs-number">0</span>]^<span class="hljs-built_in">ord</span>(<span class="hljs-string">&#x27;a&#x27;</span>)^<span class="hljs-built_in">ord</span>(<span class="hljs-string">&#x27;A&#x27;</span>) <span class="hljs-comment">#c[0]为第一组的密文字符，a为第二组相应位置的明文字符，A是我们想要的明文字符</span><br>    c=binascii.b2a_hex(c)<br>    <span class="hljs-keyword">return</span> c<br> <br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;ciphertext:&quot;</span>,enc(data))<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;data:&quot;</span>,dec(enc(data)))<br><span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;CBC Attack:&quot;</span>,dec(CBC_test(enc(data))))<br></code></pre></td></tr></table></figure>
+<p><strong>运行结果</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python">ciphertext: <span class="hljs-string">b&#x27;ffa645d1b5e40afbbae47de053a66f978fa0a824e99864a7e8baf38ceccda613c304883f11fc0857c1bb7603f859798e&#x27;</span><br>data: <span class="hljs-string">b&#x27;1234567890abcdefabcdef1234567890\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10&#x27;</span><br>CBC Attack: <span class="hljs-string">b&#x27;:8O&lt;\xe7\x04\xd8v\xe8Q\xfe\xa5I\xc9c]Abcdef1234567890\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10&#x27;</span><br></code></pre></td></tr></table></figure>
+<p><strong>可以看到第二组密文解密之后已经被我们更改成了A，而由于我们更改了第一组的密文，所以第一组解密的明文变成了乱码。如果我们想要更改第一组的明文，则需要修改初始向量IV的值。</strong></p>
+<p><strong>通过CBC字节翻转攻击，假如我们能够触发加解密过程，并且能够获得每次加密后的密文。那么我们就能够在不知道key的情况下，通过修改密文或IV，来控制输出明文为自己想要的内容，而且只能从最后一组开始修改，并且每改完一组，都需要重新获取一次解密后的数据，要根据解密后的数据来修改前一组密文的值。</strong></p>
+<p><strong>通过修改明文修改IV（不会改变对应密文）</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">flipplain</span>(<span class="hljs-params">oldplain, newplain, iv</span>):  <span class="hljs-comment"># 定义一个函数用于进行CBC字节翻转攻击</span><br>    <span class="hljs-string">&quot;&quot;&quot;flip oldplain to new plain, return proper iv&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> strxor(strxor(oldplain, newplain), iv)<br></code></pre></td></tr></table></figure>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p><strong>Padding Oracle Attack 攻击一般需要满足以下几个条件：</strong></p>
+<ul>
+<li><strong>加密算法：</strong><ul>
+<li><strong>采用 PKCS5或者PKCS7 Padding 的加密算法。 当然，非对称加密中 OAEP 的填充方式也有可能会受到影响。</strong></li>
+<li><strong>分组模式为 CBC 模式。</strong></li>
+</ul>
+</li>
+<li><strong>攻击者能力：</strong><ul>
+<li><strong>攻击者可以拦截上述加密算法加密的消息。</strong></li>
+<li><strong>攻击者可以和 padding oracle（即服务器） 进行交互：客户端向服务器端发送密文，服务器端会以某种返回信息告知客户端 padding 是否正常。</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>此时Padding Oracle Attack就可以在不清楚 key 和 IV 的前提下解密任意给定的密文。</strong></p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p><strong>假设现在有一个真实场景：</strong></p>
+<p><strong>某程序使用Cookie来加密传递用户的加密用户名、公司 ID 和角色 ID。该Cookie使用CBC Mode加密，每个Cookie使用一个唯一的初始化向量iv，该向量位于密文之前。</strong></p>
+<p><strong>当应用程序收到一个加密Cookie时，它有以下三种响应方式：</strong></p>
+<ul>
+<li><strong>当收到一个有效的密文（一个被正确填充并包含有效数据的密文）时，应用程序正常响应（200 OK）</strong></li>
+<li><strong>当收到无效的密文时（解密时填充错误的密文），应用程序会抛出加密异常（500 内部服务器错误）</strong></li>
+<li><strong>当收到一个有效密文（解密时正确填充的密文）但解密为无效值时，应用程序会显示自定义错误消息 (200 OK)</strong></li>
+</ul>
+<p><strong>上面描述的场景是一个经典的Padding Oracle，因为我们可以使用程序的行为来确定提供的加密值是否被正确填充。</strong></p>
+<p><strong>假设有一个员工，其信息分别为：用户名：BRIAN、公司ID：12、角色ID：1。各信息之间用分号分隔，于是可以表示成以下形式：<code>BRAIN;12;1</code></strong></p>
+<p><strong>假设我们使用PKCS5填充，可以转换为以下形式：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python">BRIAN;<span class="hljs-number">12</span>;<span class="hljs-number">1</span>;0x050x050x050x050x05<br><span class="hljs-comment">#16字节，符合Pkcs5分组长度，可以将以上字符串分为两组，每组8字节</span><br></code></pre></td></tr></table></figure>
+<p><strong>下面是CBC的加密过程</strong></p>
+<p><img src="/img/bg/CBC1.jpg" srcset="/img/loading.gif" lazyload alt="CBC加密"></p>
+<p><strong>这里设置的初始向量iv为<code>0x7B 0x21 0x6A 0x63 0x49 0x51 0x17 0x0F</code>，这时服务器发送的Cookie应该为<code>7B216A634951170FF851D6CC68FC9537858795A28ED4AAC6</code>，初始向量iv被填充在加密密文之前。</strong></p>
+<p><strong>CBC解密过程如下</strong></p>
+<p><img src="/img/bg/CBC2.jpg" srcset="/img/loading.gif" lazyload alt="CBC解密"></p>
+<p><strong>密文进行分组解密之后会产生中间值Intermediary Value，这些中间值再和前一组密文异或便会得到本组明文。解密出的明文后面会有正确的填充块。当然在客户端，我们无法得知这些中间值是什么。</strong></p>
+<h3 id="攻击原理一"><a href="#攻击原理一" class="headerlink" title="攻击原理一"></a>攻击原理一</h3><p><strong>首先我们可以更改Cookie 中的初始向量iv，将iv的值改为全零，并且只发送第一个加密块。此时Cookie变为</strong><br><strong><code>Cookie：0000000000000000F851D6CC68FC9537</code></strong></p>
+<p><strong>服务器端的解密过程如下</strong></p>
+<p><img src="/img/bg/CBC3.jpg" srcset="/img/loading.gif" lazyload alt="攻击原理一"></p>
+<p><strong>可以看到，如果按照我们发送的错误数据来解密的话，最后一位数据是<code>0x3D</code>。而正常的解密数据最后是包含填充数据的。对于分组长度为8字节来说，这些填充数据的值位于<code>0x01-0x08</code>，而<code>0x3D</code>并不在其中。所以服务器会检测到填充块错误，返回500异常。</strong></p>
+<h3 id="攻击原理二"><a href="#攻击原理二" class="headerlink" title="攻击原理二"></a>攻击原理二</h3><p><strong>我们再次更改Cookie中的初始向量iv，和上次不同的是，我们将iv最后一位的值改为<code>0x01</code>，此时Cookie的值如下</strong><br><strong><code>Cookie：0000000000000001F851D6CC68FC9537</code></strong></p>
+<p><strong>我们再次将Cookie发送给服务器端解密</strong></p>
+<p><img src="/img/bg/CBC4.jpg" srcset="/img/loading.gif" lazyload alt="攻击原理二"></p>
+<p><strong>可以看见，此时明文最后一位变成了<code>0x3C</code>，这仍然不是正确的填充数据，服务器同样会返回500异常。但是与上次不一样的是，明文最后一位的值从<code>0x3D</code>变为了<code>0x3C</code>。也就是说，我们可以通过控制初始向量iv的值来控制明文输出。</strong></p>
+<p><strong>如果我们重复发出相同的请求并每次只更改iv中同一个字节的值（最多至0xFF），我们肯定能够碰到一个值，使明文符合填充规律。</strong></p>
+<h3 id="攻击原理三"><a href="#攻击原理三" class="headerlink" title="攻击原理三"></a>攻击原理三</h3><p><strong>假设我们通过不断发送类似的Cookie给服务器端解密，找到了一个使明文符合填充规律的Cookie，此时服务器端的解密过程如下</strong></p>
+<p><img src="/img/bg/CBC5.jpg" srcset="/img/loading.gif" lazyload alt="攻击原理三"></p>
+<p><strong>解密后的明文最后一位为<code>0x01</code>，符合填充规律，但是明文结果并不正确。此时服务器会返回200OK自定义页面。由于填充规律是固定的，我们只更改了一位iv的值，所以解密明文肯定是一位填充数据，值为<code>0x01</code>。此时我们可以根据以下公式得到一位加密的中间值<code>0x3D</code></strong><br><strong><center>0x3D &#x3D; 0x3C ⊕ 0x01</center></strong></p>
+<h3 id="攻击原理四"><a href="#攻击原理四" class="headerlink" title="攻击原理四"></a>攻击原理四</h3><p><strong>类似地，我们可以爆破iv值的每一位，直到解密出来的每一位明文数据都变成全部符合填充规律的<code>0x08</code>，解密过程如下</strong></p>
+<p><img src="/img/bg/CBC6.jpg" srcset="/img/loading.gif" lazyload alt="攻击原理四"></p>
+<p><strong>至此，我们可以利用Padding Oracle Attack来爆破出每一组加密中间值。然后再使用第一组的中间值和服务器端初始的iv异或，便可以得到第一组明文。继续使用CBC Mode解密，可以依次得到所有明文分组。</strong></p>
+<p><strong>对于每一组，至多需要尝试256*8次也就是2048次，便可爆破出加密中间值。这样我们就可以绕过加密，从而直接获得密文的明文。</strong></p>
+<h3 id="攻击原理五"><a href="#攻击原理五" class="headerlink" title="攻击原理五"></a>攻击原理五</h3><p><strong>在利用测试四中，我们已经能够利用Padding Oracle Attack爆破出所有中间值和明文了，那么我们该怎么构造出任意明文的合法密文呢？</strong></p>
+<p><strong>首先我们先看单一分组的情况</strong></p>
+<p><img src="/img/bg/CBC6.jpg" srcset="/img/loading.gif" lazyload alt="单一分组"></p>
+<p><strong>由于我们已经爆破出了intermediary，所以我们可以很容易地构造出iv来生成任意明文。</strong></p>
+<p><strong>那么对于多组明文，情况又是怎样的呢？</strong></p>
+<p><img src="/img/bg/CBC7.jpg" srcset="/img/loading.gif" lazyload alt="多组情况"></p>
+<p><strong>先从最后一组开始，爆破最后一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文，以此类推。由此我们可以得到构造密文的步骤</strong></p>
+<ol>
+<li><strong>从最后一组开始，爆破出该组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</strong></li>
+<li><strong>爆破前一组的intermediary并构造出iv，然后将本组的iv当作前一组的密文</strong></li>
+<li><strong>…</strong></li>
+<li><strong>最后会得到第一组的iv，至此我们已经构造出了所有合法密文以及iv</strong></li>
+</ol>
+<h3 id="基础脚本"><a href="#基础脚本" class="headerlink" title="基础脚本"></a>基础脚本</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">from</span> copy <span class="hljs-keyword">import</span> deepcopy<br><span class="hljs-keyword">from</span> tqdm <span class="hljs-keyword">import</span> trange<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">import</span> random<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">AES_CBC_enc</span>(<span class="hljs-params">m, key, iv</span>):<br>    aes = AES.new(key, AES.MODE_CBC, iv)<br>    <span class="hljs-keyword">return</span> aes.encrypt(m)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">AES_CBC_dec</span>(<span class="hljs-params">c, key, iv</span>):<br>    aes = AES.new(key, AES.MODE_CBC, iv)<br>    <span class="hljs-keyword">return</span> aes.decrypt(c)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">padding_to_16</span>(<span class="hljs-params">msg</span>):<br>    padding = <span class="hljs-number">16</span> - (<span class="hljs-built_in">len</span>(msg) % <span class="hljs-number">16</span>)<br>    <span class="hljs-keyword">return</span> msg + <span class="hljs-built_in">bytes</span>([padding]) * padding<br><br><br><span class="hljs-comment"># unpadding and check padding characters</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpadding</span>(<span class="hljs-params">msg</span>):<br>    padding = msg[-<span class="hljs-number">1</span>]<br>    <span class="hljs-keyword">if</span> padding == <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> msg, <span class="hljs-literal">False</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(padding):<br>        <span class="hljs-keyword">if</span> (msg[-i-<span class="hljs-number">1</span>] != padding):<br>            <span class="hljs-keyword">return</span> msg, <span class="hljs-literal">False</span><br>    <span class="hljs-keyword">return</span> msg[:-padding], <span class="hljs-literal">True</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">padding_oracle_attack</span>(<span class="hljs-params">msg_enc, key, iv</span>):<br>    middle = [<span class="hljs-number">0</span>] * <span class="hljs-number">16</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> trange(<span class="hljs-number">16</span>):<br>        my_iv = deepcopy(middle)<br>        <span class="hljs-keyword">if</span> i != <span class="hljs-number">0</span>:<br>            my_iv[-i:] = xor(my_iv[-i:], [i+<span class="hljs-number">1</span>]*i)<br>        <span class="hljs-built_in">print</span>(my_iv)<br>        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>):<br>            my_iv[-i-<span class="hljs-number">1</span>] = j<br><br>            msg_after_padding = AES_CBC_dec(msg_enc, key, <span class="hljs-built_in">bytes</span>(my_iv))<br>            flag = unpadding(msg_after_padding)[<span class="hljs-number">1</span>]<br>            <span class="hljs-keyword">if</span> flag == <span class="hljs-literal">True</span>:<br>                middle[-i-<span class="hljs-number">1</span>] = j ^ (i+<span class="hljs-number">1</span>)<br>                <span class="hljs-keyword">break</span><br><br>    msg_after_padding = xor(middle, <span class="hljs-built_in">bytearray</span>(iv))<br>    <span class="hljs-built_in">print</span>(msg_after_padding)<br>    msg, flag = unpadding(<span class="hljs-built_in">bytes</span>(msg_after_padding))<br>    <span class="hljs-keyword">if</span> flag == <span class="hljs-literal">False</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br>    <span class="hljs-keyword">return</span> msg<br><br><br>msg = os.urandom(random.randint(<span class="hljs-number">1</span>,<span class="hljs-number">15</span>))<br>key = os.urandom(<span class="hljs-number">16</span>)<br>iv = os.urandom(<span class="hljs-number">16</span>)<br><span class="hljs-built_in">print</span>(msg)<br><br><span class="hljs-comment"># padding msg </span><br>msg_after_padding = padding_to_16(msg)<br>msg_enc = AES_CBC_enc(msg_after_padding, key, iv)<br><br><span class="hljs-comment"># padding_oracle_attack recover msg</span><br>msg = padding_oracle_attack(msg_enc, key, iv)<br><span class="hljs-built_in">print</span>(msg)<br></code></pre></td></tr></table></figure>
+
+<h2 id="例题"><a href="#例题" class="headerlink" title="例题"></a>例题</h2><h3 id="2023-第六届安洵杯-Cry2"><a href="#2023-第六届安洵杯-Cry2" class="headerlink" title="2023 第六届安洵杯 Cry2"></a>2023 第六届安洵杯 Cry2</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># -*- coding:utf-8 -*-</span><br><span class="hljs-keyword">from</span> Crypto.Util.number <span class="hljs-keyword">import</span> isPrime, long_to_bytes, getStrongPrime, bytes_to_long<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES<br><span class="hljs-keyword">from</span> Crypto.Util.Padding <span class="hljs-keyword">import</span> pad<br><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">import</span> binascii<br><span class="hljs-keyword">import</span> random<br><span class="hljs-keyword">import</span> string<br><span class="hljs-keyword">import</span> hashlib<br><span class="hljs-keyword">import</span> socketserver<br><br>FLAG = <span class="hljs-string">&#x27;**********&#x27;</span><br>KEY = <span class="hljs-string">b&#x27;****************&#x27;</span><br>IV = <span class="hljs-string">b&#x27;****************&#x27;</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">cbc_decrypt</span>(<span class="hljs-params">c, iv</span>):<br>    aes = AES.new(KEY, AES.MODE_CBC, iv=iv)<br>    <span class="hljs-keyword">return</span> aes.decrypt(c)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">encrypt</span>():<br>    plain_text = <span class="hljs-string">&#x27;&#x27;</span>.join([random.choice(string.ascii_letters) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>)]) + FLAG<br>    aes = AES.new(KEY, AES.MODE_CBC, iv=IV)<br>    plain_text = pad(plain_text.encode(), AES.block_size)<br>    cipher = aes.encrypt(plain_text)<br>    <span class="hljs-keyword">return</span> IV.<span class="hljs-built_in">hex</span>() + cipher.<span class="hljs-built_in">hex</span>()<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">asserts</span>(<span class="hljs-params">pt: <span class="hljs-built_in">bytes</span></span>):<br>    num = pt[-<span class="hljs-number">1</span>]<br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(pt) == <span class="hljs-number">16</span>:<br>        result = pt[::-<span class="hljs-number">1</span>]<br>        count = <span class="hljs-number">0</span><br>        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> result:<br>            <span class="hljs-keyword">if</span> i == num:<br>                count += <span class="hljs-number">1</span> <br>            <span class="hljs-keyword">else</span>:<br>                <span class="hljs-keyword">break</span><br>        <span class="hljs-keyword">if</span> count == num:<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span><br>        <span class="hljs-keyword">else</span>:<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span><br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">decrypt</span>(<span class="hljs-params">c</span>):<br>    iv = c[:<span class="hljs-number">32</span>]<br>    cipher = c[<span class="hljs-number">32</span>:]<br>    plain_text = cbc_decrypt(binascii.unhexlify(cipher), binascii.unhexlify(iv))<br>    <span class="hljs-keyword">if</span> asserts(plain_text):<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span><br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span><br><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">MyServer</span>(socketserver.BaseRequestHandler):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">proof</span>(<span class="hljs-params">self</span>):<br>        random.seed(os.urandom(<span class="hljs-number">8</span>))<br>        random_str = <span class="hljs-string">&#x27;&#x27;</span>.join([random.choice(string.ascii_letters + string.digits) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">20</span>)])<br>        str_sha256 = hashlib.sha256(random_str.encode()).hexdigest()<br>        <span class="hljs-variable language_">self</span>.request.sendall((<span class="hljs-string">&#x27;SHA256(XXXX + %s):%s\n&#x27;</span> % (random_str[<span class="hljs-number">4</span>:], str_sha256)).encode())<br>        <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;Give Me XXXX:\n&#x27;</span>.encode())<br>        XXXX = <span class="hljs-variable language_">self</span>.request.recv(<span class="hljs-number">2048</span>).strip()<br><br>        <span class="hljs-keyword">if</span> hashlib.sha256((XXXX + random_str[<span class="hljs-number">4</span>:].encode())).hexdigest() != str_sha256:<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span><br><br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">handle</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>.proof():<br>            <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">b&#x27;Error Hash!&#x27;</span>)<br>            <span class="hljs-keyword">return</span><br>        cipher = encrypt()<br>        <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;Welcome to AES System, please choose the following options:\n1. encrypt the flag\n2. decrypt the flag\n&#x27;</span>.encode())<br>        n = <span class="hljs-number">0</span><br>        <span class="hljs-keyword">while</span> n &lt; <span class="hljs-number">65536</span>:<br>            options = <span class="hljs-variable language_">self</span>.request.recv(<span class="hljs-number">512</span>).strip().decode()<br>            <span class="hljs-keyword">if</span> options == <span class="hljs-string">&#x27;1&#x27;</span>:<br>                <span class="hljs-variable language_">self</span>.request.sendall((<span class="hljs-string">&#x27;This is your flag: %s\n&#x27;</span> % cipher).encode())<br>            <span class="hljs-keyword">elif</span> options == <span class="hljs-string">&#x27;2&#x27;</span>:<br>                <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;Please enter ciphertext:\n&#x27;</span>.encode())<br>                recv_cipher = <span class="hljs-variable language_">self</span>.request.recv(<span class="hljs-number">512</span>).strip().decode()<br>                <span class="hljs-keyword">if</span> decrypt(recv_cipher):<br>                    <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;True\n&#x27;</span>.encode())<br>                <span class="hljs-keyword">else</span>:<br>                    <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;False\n&#x27;</span>.encode())<br>            <span class="hljs-keyword">else</span>:<br>                <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;Input wrong! Please re-enter\n&#x27;</span>.encode())<br>            n += <span class="hljs-number">1</span><br>        <span class="hljs-keyword">return</span><br><br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">ThreadedTCPServer</span>(socketserver.ThreadingMixIn, socketserver.TCPServer):<br>    <span class="hljs-keyword">pass</span><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    sever = socketserver.ThreadingTCPServer((<span class="hljs-string">&#x27;0.0.0.0&#x27;</span>, <span class="hljs-number">10010</span>), MyServer)<br>    ThreadedTCPServer.allow_reuse_address = <span class="hljs-literal">True</span><br>    ThreadedTCPServer.allow_reuse_port = <span class="hljs-literal">True</span><br>    sever.serve_forever()<br></code></pre></td></tr></table></figure>
+<h4 id="题目分析"><a href="#题目分析" class="headerlink" title="题目分析"></a>题目分析</h4><p><strong>这一题的核心思路就是利用Padding Oracle Attack爆破出middle，但是这个攻击是有条件的，我们先分析一下题目的关键代码</strong></p>
+<p><strong>flag通过PKCS7的方式padding</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> Crypto.Util.Padding <span class="hljs-keyword">import</span> pad<br><br>plain_text = <span class="hljs-string">&#x27;&#x27;</span>.join([random.choice(string.ascii_letters) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">2</span>)]) + FLAG<br>plain_text = pad(plain_text.encode(), AES.block_size)<br></code></pre></td></tr></table></figure>
+<p><strong>已知iv和ciphertext</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">if</span> options == <span class="hljs-string">&#x27;1&#x27;</span>:<br>    <span class="hljs-variable language_">self</span>.request.sendall((<span class="hljs-string">&#x27;This is your flag: %s\n&#x27;</span> % cipher).encode())<br></code></pre></td></tr></table></figure>
+<p><strong>服务端会用key以及我们发过去的iv和ciphertext解密得到一个plaintext，然后用asserts函数检查该plaintext的padding字符，如果符合pkcs7会输出”True”，不符合则输出”False”</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">elif</span> options == <span class="hljs-string">&#x27;2&#x27;</span>:<br>    <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;Please enter ciphertext:\n&#x27;</span>.encode())<br>    recv_cipher = <span class="hljs-variable language_">self</span>.request.recv(<span class="hljs-number">512</span>).strip().decode()<br>    <span class="hljs-keyword">if</span> decrypt(recv_cipher):<br>        <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;True\n&#x27;</span>.encode())<br>    <span class="hljs-keyword">else</span>:<br>        <span class="hljs-variable language_">self</span>.request.sendall(<span class="hljs-string">&#x27;False\n&#x27;</span>.encode())<br></code></pre></td></tr></table></figure>
+<p><strong>总结一下，我们现在已知</strong></p>
+<ol>
+<li><strong>plaintext经过pad</strong></li>
+<li><strong>已知iv和ciphertext（其实只要有iv就足够了）</strong></li>
+<li><strong>解密的iv和ciphertext可控，解密得到plaintext，检查其padding是否正确并输出检查结果</strong></li>
+</ol>
+<p><strong>符合这些条件就可以实现Padding Oracle Attack来恢复plaintext了</strong></p>
+<h4 id="解题代码"><a href="#解题代码" class="headerlink" title="解题代码"></a>解题代码</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">import</span> itertools<br><span class="hljs-keyword">from</span> copy <span class="hljs-keyword">import</span> deepcopy<br><span class="hljs-keyword">from</span> tqdm <span class="hljs-keyword">import</span> trange<br><span class="hljs-keyword">from</span> string <span class="hljs-keyword">import</span> ascii_letters, digits<br><span class="hljs-keyword">import</span> hashlib<br><span class="hljs-keyword">import</span> binascii<br><br><br><span class="hljs-comment"># context.log_level = &quot;debug&quot;</span><br>p = remote(<span class="hljs-string">&quot;127.0.0.1&quot;</span>, <span class="hljs-number">10010</span>)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_proof</span>():<br>    p.recvuntil(<span class="hljs-string">b&quot;SHA256(XXXX + &quot;</span>)<br>    last = p.recvuntil(<span class="hljs-string">b&quot;):&quot;</span>, drop=<span class="hljs-literal">True</span>)<br>    shav = p.recvline()[:-<span class="hljs-number">1</span>]<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;last = <span class="hljs-subst">&#123;last&#125;</span>&quot;</span>)<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;shav = <span class="hljs-subst">&#123;shav&#125;</span>&quot;</span>)<br>    <span class="hljs-keyword">for</span> cont <span class="hljs-keyword">in</span> itertools.product(ascii_letters + digits, repeat=<span class="hljs-number">4</span>):<br>        cont = <span class="hljs-string">&#x27;&#x27;</span>.join(cont).encode()<br>        <span class="hljs-keyword">if</span> hashlib.new(<span class="hljs-string">&quot;sha256&quot;</span>, cont + last).hexdigest() == shav.decode():<br>            <span class="hljs-built_in">print</span>(cont)<br>            <span class="hljs-keyword">break</span><br>    p.sendlineafter(<span class="hljs-string">b&quot;Give Me XXXX:\n&quot;</span>, cont)<br><br><br><span class="hljs-comment"># unpadding and check padding characters</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpadding</span>(<span class="hljs-params">msg</span>):<br>    padding = msg[-<span class="hljs-number">1</span>]<br>    <span class="hljs-keyword">if</span> padding == <span class="hljs-number">0</span>:<br>        <span class="hljs-keyword">return</span> msg, <span class="hljs-literal">False</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(padding):<br>        <span class="hljs-keyword">if</span> (msg[-i-<span class="hljs-number">1</span>] != padding):<br>            <span class="hljs-keyword">return</span> msg, <span class="hljs-literal">False</span><br>    <span class="hljs-keyword">return</span> msg[:-padding], <span class="hljs-literal">True</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">padding_oracle_attack</span>(<span class="hljs-params">iv, c</span>):<br>    solved_dec = [<span class="hljs-number">0</span>] * <span class="hljs-number">16</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> trange(<span class="hljs-number">16</span>):<br>        new_iv = deepcopy(solved_dec)<br>        <span class="hljs-keyword">if</span> i != <span class="hljs-number">0</span>:<br>            new_iv[-i:] = xor(new_iv[-i:], [i+<span class="hljs-number">1</span>]*i)<br>        <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>):<br>            new_iv[-i-<span class="hljs-number">1</span>] = j<br><br>            p.sendline(<span class="hljs-string">b&quot;2&quot;</span>)<br>            p.sendlineafter(<span class="hljs-string">b&quot;Please enter ciphertext:\n&quot;</span>, (<span class="hljs-built_in">bytes</span>(new_iv).<span class="hljs-built_in">hex</span>() + c.<span class="hljs-built_in">hex</span>()).encode())<br>            <span class="hljs-keyword">if</span> p.recvline() != <span class="hljs-string">b&quot;False\n&quot;</span>:<br>                solved_dec[-i-<span class="hljs-number">1</span>] = j ^ (i+<span class="hljs-number">1</span>)<br>                <span class="hljs-keyword">break</span><br><br>    msg_after_padding = xor(solved_dec, <span class="hljs-built_in">bytearray</span>(iv))<br>    <span class="hljs-built_in">print</span>(msg_after_padding)<br>    msg, flag = unpadding(<span class="hljs-built_in">bytes</span>(msg_after_padding))<br>    <span class="hljs-keyword">if</span> flag == <span class="hljs-literal">False</span>:<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span><br>    <span class="hljs-keyword">return</span> msg<br><br><br>get_proof()<br><br>p.sendlineafter(<span class="hljs-string">b&quot;1. encrypt the flag\n2. decrypt the flag\n&quot;</span>, <span class="hljs-string">b&quot;1&quot;</span>)<br>iv_and_c = binascii.unhexlify(p.recvline().decode()[<span class="hljs-number">19</span>:-<span class="hljs-number">1</span>])<br>iv, c = iv_and_c[:<span class="hljs-number">16</span>], iv_and_c[<span class="hljs-number">16</span>:]<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;iv = <span class="hljs-subst">&#123;iv&#125;</span>&quot;</span>)<br><span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;c = <span class="hljs-subst">&#123;c&#125;</span>&quot;</span>)<br><br>msg = padding_oracle_attack(iv, c)<br><span class="hljs-built_in">print</span>(msg)<br><br><span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">last = b&#x27;OfBypjLi4BizYvHW&#x27;</span><br><span class="hljs-string">shav = b&#x27;c0786d83da7177ab64ac113343ad157e4a7784998fb2be1ff84ab1e378499375&#x27;</span><br><span class="hljs-string">b&#x27;OTnk&#x27;</span><br><span class="hljs-string">iv = b&#x27;`\xb9\x9c\xa7K&gt;SfC|\xabz\x8b*\x00`&#x27;</span><br><span class="hljs-string">c = b&#x27;#\xad\xfd\x84m\x16F\x17\xc3\xc9s\xce\x02\x86\x04\x88&#x27;</span><br><span class="hljs-string">100%|██████████| 16/16 [00:00&lt;00:00, 51.35it/s]</span><br><span class="hljs-string">b&#x27;Obflag&#123;test&#125;\x04\x04\x04\x04&#x27;</span><br><span class="hljs-string">b&#x27;Obflag&#123;test&#125;&#x27;</span><br><span class="hljs-string">&quot;&quot;&quot;</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2017-HITCON-Secret-Server"><a href="#2017-HITCON-Secret-Server" class="headerlink" title="2017 HITCON Secret Server"></a>2017 HITCON Secret Server</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> os, base64, time, random, string <br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES <br><span class="hljs-keyword">from</span> Crypto.Hash <span class="hljs-keyword">import</span> * <br><br>key = os.urandom(<span class="hljs-number">16</span>)  <br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">pad</span>(<span class="hljs-params">msg</span>):<br>    pad_length = <span class="hljs-number">16</span>-<span class="hljs-built_in">len</span>(msg)%<span class="hljs-number">16</span>  <br>    <span class="hljs-keyword">return</span> msg+<span class="hljs-built_in">chr</span>(pad_length)*pad_length  <br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpad</span>(<span class="hljs-params">msg</span>):<br>    <span class="hljs-keyword">return</span> msg[:-<span class="hljs-built_in">ord</span>(msg[-<span class="hljs-number">1</span>])]  <br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">encrypt</span>(<span class="hljs-params">iv,msg</span>):<br>    msg = pad(msg)  <br>    cipher = AES.new(key,AES.MODE_CBC,iv)  <br>    encrypted = cipher.encrypt(msg)  <br>    <span class="hljs-keyword">return</span> encrypted  <br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">decrypt</span>(<span class="hljs-params">iv,msg</span>):<br>    cipher = AES.new(key,AES.MODE_CBC,iv)  <br>    decrypted = cipher.decrypt(msg)  <br>    decrypted = unpad(decrypted)  <br>    <span class="hljs-keyword">return</span> decrypted  <br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">send_msg</span>(<span class="hljs-params">msg</span>):<br>    iv = <span class="hljs-string">&#x27;2jpmLoSsOlQrqyqE&#x27;</span>  <br>    encrypted = encrypt(iv,msg)  <br>    msg = iv+encrypted  <br>    msg = base64.b64encode(msg)  <br>    <span class="hljs-built_in">print</span> msg  <br>    <span class="hljs-keyword">return</span><br><br><span class="hljs-comment"># 定义一个函数，用于接收消息</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">recv_msg</span>():<br>    msg = raw_input() <br>    <span class="hljs-keyword">try</span>:<br>        msg = base64.b64decode(msg)  <span class="hljs-comment"># 对接收到的消息进行Base64解码</span><br>        <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(msg)&lt;<span class="hljs-number">500</span>  <br>        decrypted = decrypt(msg[:<span class="hljs-number">16</span>],msg[<span class="hljs-number">16</span>:])  <br>        <span class="hljs-keyword">return</span> decrypted  <br>    <span class="hljs-keyword">except</span>:<br>        <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Error&#x27;</span>  <span class="hljs-comment"># 如果在解码或解密过程中出现错误，打印错误信息并退出程序</span><br>        exit(<span class="hljs-number">0</span>)<br><br><span class="hljs-comment"># 定义一个函数，用于进行工作量证明（Proof of Work）</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">proof_of_work</span>():<br>    proof = <span class="hljs-string">&#x27;&#x27;</span>.join([random.choice(string.ascii_letters+string.digits) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> xrange(<span class="hljs-number">20</span>)])  <span class="hljs-comment"># 生成一个随机的20字符的字符串</span><br>    digest = SHA256.new(proof).hexdigest()  <span class="hljs-comment"># 对生成的字符串进行SHA256哈希</span><br>    <span class="hljs-built_in">print</span> <span class="hljs-string">&quot;SHA256(XXXX+%s) == %s&quot;</span> % (proof[<span class="hljs-number">4</span>:],digest)  <span class="hljs-comment"># 打印哈希值</span><br>    x = raw_input(<span class="hljs-string">&#x27;Give me XXXX:&#x27;</span>)  <span class="hljs-comment"># 接收用户输入的前4个字符</span><br>    <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(x)!=<span class="hljs-number">4</span> <span class="hljs-keyword">or</span> SHA256.new(x+proof[<span class="hljs-number">4</span>:]).hexdigest() != digest:  <span class="hljs-comment"># 验证用户输入的前4个字符是否正确</span><br>        exit(<span class="hljs-number">0</span>)  <span class="hljs-comment"># 如果验证失败，退出程序</span><br>    <span class="hljs-built_in">print</span> <span class="hljs-string">&quot;Done!&quot;</span>  <span class="hljs-comment"># 如果验证成功，打印成功信息</span><br>    <span class="hljs-keyword">return</span><br><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>    proof_of_work()  <span class="hljs-comment"># 执行工作量证明</span><br>    <span class="hljs-keyword">with</span> <span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;flag.txt&#x27;</span>) <span class="hljs-keyword">as</span> f:  <br>        flag = f.read().strip()  <br>    <span class="hljs-keyword">assert</span> flag.startswith(<span class="hljs-string">&#x27;hitcon&#123;&#x27;</span>) <span class="hljs-keyword">and</span> flag.endswith(<span class="hljs-string">&#x27;&#125;&#x27;</span>)  <br>    send_msg(<span class="hljs-string">&#x27;Welcome!!&#x27;</span>)  <br>    <span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:  <br>        <span class="hljs-keyword">try</span>:<br>            msg = recv_msg().strip()  <span class="hljs-comment"># 接收并去除消息两端的空白字符</span><br>            <span class="hljs-keyword">if</span> msg.startswith(<span class="hljs-string">&#x27;exit-here&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;exit-here&#x27;开头，退出程序</span><br>                exit(<span class="hljs-number">0</span>)<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-flag&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-flag&#x27;开头，发送flag</span><br>                send_msg(flag)<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-md5&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-md5&#x27;开头，发送消息的MD5哈希值</span><br>                send_msg(MD5.new(msg[<span class="hljs-number">7</span>:]).digest())<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-time&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-time&#x27;开头，发送当前时间</span><br>                send_msg(<span class="hljs-built_in">str</span>(time.time()))<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-sha1&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-sha1&#x27;开头，发送消息的SHA1哈希值</span><br>                send_msg(SHA.new(msg[<span class="hljs-number">8</span>:]).digest())<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-sha256&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-sha256&#x27;开头，发送消息的SHA256哈希值</span><br>                send_msg(SHA256.new(msg[<span class="hljs-number">10</span>:]).digest())<br>            <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-hmac&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-hmac&#x27;开头，发送消息的HMAC哈希值</span><br>                send_msg(HMAC.new(msg[<span class="hljs-number">8</span>:]).digest())<br>            <span class="hljs-keyword">else</span>:  <span class="hljs-comment"># 如果消息不符合以上任何一种格式，发送&#x27;command not found&#x27;</span><br>                send_msg(<span class="hljs-string">&#x27;command not found&#x27;</span>)<br>        <span class="hljs-keyword">except</span>:<br>            exit(<span class="hljs-number">0</span>)  <span class="hljs-comment"># 如果在接收消息或处理消息过程中出现错误，退出程序</span><br></code></pre></td></tr></table></figure>
+<h4 id="题目分析-1"><a href="#题目分析-1" class="headerlink" title="题目分析"></a>题目分析</h4><p><strong>程序中采用的加密是 AES CBC，其中采用的 padding 与 PKCS5 类似</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">pad</span>(<span class="hljs-params">msg</span>):<br>    pad_length = <span class="hljs-number">16</span>-<span class="hljs-built_in">len</span>(msg)%<span class="hljs-number">16</span><br>    <span class="hljs-keyword">return</span> msg+<span class="hljs-built_in">chr</span>(pad_length)*pad_length<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpad</span>(<span class="hljs-params">msg</span>):<br>    <span class="hljs-keyword">return</span> msg[:-<span class="hljs-built_in">ord</span>(msg[-<span class="hljs-number">1</span>])]<br></code></pre></td></tr></table></figure>
+<p><strong>但是，在每次 unpad 时并没有进行检测，而是直接进行 unpad。</strong></p>
+<p><strong>其中，需要注意的是，每次和用户交互的函数是</strong></p>
+<ul>
+<li><strong><code>send_msg</code> ，接受用户的明文，使用固定的 <code>2jpmLoSsOlQrqyqE</code> 作为 IV，进行加密，并将加密结果输出。</strong></li>
+<li><strong><code>recv_msg</code> ，接受用户的 IV 和密文，对密文进行解密，并返回。根据返回的结果会有不同的操作</strong><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs python">    msg = recv_msg().strip()  <span class="hljs-comment"># 接收并去除消息两端的空白字符</span><br>    <span class="hljs-keyword">if</span> msg.startswith(<span class="hljs-string">&#x27;exit-here&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;exit-here&#x27;开头，退出程序</span><br>        exit(<span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-flag&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-flag&#x27;开头，发送flag</span><br>        send_msg(flag)<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-md5&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-md5&#x27;开头，发送消息的MD5哈希值</span><br>        send_msg(MD5.new(msg[<span class="hljs-number">7</span>:]).digest())<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-time&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-time&#x27;开头，发送当前时间</span><br>        send_msg(<span class="hljs-built_in">str</span>(time.time()))<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-sha1&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-sha1&#x27;开头，发送消息的SHA1哈希值</span><br>        send_msg(SHA.new(msg[<span class="hljs-number">8</span>:]).digest())<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-sha256&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-sha256&#x27;开头，发送消息的SHA256哈希值</span><br>        send_msg(SHA256.new(msg[<span class="hljs-number">10</span>:]).digest())<br>    <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-hmac&#x27;</span>):  <span class="hljs-comment"># 如果消息以&#x27;get-hmac&#x27;开头，发送消息的HMAC哈希值</span><br>        send_msg(HMAC.new(msg[<span class="hljs-number">8</span>:]).digest())<br>    <span class="hljs-keyword">else</span>:  <span class="hljs-comment"># 如果消息不符合以上任何一种格式，发送&#x27;command not found&#x27;</span><br>        send_msg(<span class="hljs-string">&#x27;command not found&#x27;</span>)<br><span class="hljs-keyword">except</span>:<br>    exit(<span class="hljs-number">0</span>)  <span class="hljs-comment"># 如果在接收消息或处理消息过程中出现错误，退出程序</span><br></code></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="主要漏洞"><a href="#主要漏洞" class="headerlink" title="主要漏洞"></a>主要漏洞</h4><p><strong>我们已有的部分</strong></p>
+<ul>
+<li><strong>加密时IV是固定的且已知</strong></li>
+<li><strong><code>Welcome!!</code> 加密后的结果</strong></li>
+<li><strong>我们可以控制IV</strong></li>
+</ul>
+<p><strong>首先，既然我们知道 <code>Welcome!!</code> 加密后的结果，还可以控制 <code>recv_msg</code> 中的 IV，那么根据解密过程</strong><br><strong><center>P<sub>i</sub> &#x3D; D<sub>k</sub>(C<sub>i</sub> ⊕ C<sub>i-1</sub>)<br>C<sub>0</sub> &#x3D; IV</center></strong><br><strong>如果我们将 <code>Welcome!!</code> 加密后的结果输入给 <code>recv_msg</code>，那么直接解密后的结果便是 <code>（Welcome!!+&#39;\x07&#39;*7) xor iv</code>，如果我们恰当的控制解密过程中传递的 iv，那么我们就可以控制解密后的结果。也就是说我们可以执行上述所说的任意命令。从而，我们也就可以知道 <code>flag</code> 解密后的结果。</strong></p>
+<p><strong>其次，在上面的基础之上，如果我们在任何密文 C 后面添加自定义的 IV 和 Welcome 加密后的结果，作为输入传递给 <code>recv_msg</code>，那么我们便可以控制解密之后的消息的最后一个字节，那么由于 <code>unpad</code> 操作，我们便可以控制解密后的消息的长度减小 0 到 255。</strong></p>
+<h4 id="利用思路"><a href="#利用思路" class="headerlink" title="利用思路"></a>利用思路</h4><ol>
+<li><strong>绕过 <code>proof of work</code></strong></li>
+<li><strong>根据执行任意命令的方式获取加密后的 flag</strong></li>
+<li><strong>由于 <code>flag</code> 的开头是 <code>hitcon&#123;</code>，一共有 7 个字节，所以我们任然可以通过控制 iv 来使得解密后的前 7 个字节为指定字节。这使得我们可以对于解密后的消息执行 <code>get-md5</code> 命令。而根据 <code>unpad</code> 操作，我们可以控制解密后的消息恰好在消息的第几个字节处。所以我们可以开始时将控制解密后的消息为 <code>hitcon&#123;x</code>，即只保留 <code>hitcon&#123;</code> 后的一个字节。这样便可以获得带一个字节哈希后的加密结果。类似地，我们也可以获得带制定个字节哈希后的加密结果。</strong></li>
+<li><strong>这样的话，我们可以在本地逐字节爆破，计算对应 <code>md5</code>，然后再次利用任意命令执行的方式，控制解密后的明文为任意指定命令，如果控制不成功，那说明该字节不对，需要再次爆破；如果正确，那么就可以直接执行对应的命令。</strong></li>
+</ol>
+<h4 id="解题代码-1"><a href="#解题代码-1" class="headerlink" title="解题代码"></a>解题代码</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment">#coding=utf-8</span><br><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *  <br><span class="hljs-keyword">import</span> base64, time, random, string  <br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES  <br><span class="hljs-keyword">from</span> Crypto.Hash <span class="hljs-keyword">import</span> SHA256, MD5  <br><span class="hljs-comment">#context.log_level = &#x27;debug&#x27;</span><br><span class="hljs-keyword">if</span> args[<span class="hljs-string">&#x27;REMOTE&#x27;</span>]:  <br>    p = remote(<span class="hljs-string">&#x27;52.193.157.19&#x27;</span>, <span class="hljs-number">9999</span>)<br><span class="hljs-keyword">else</span>:  <br>    p = remote(<span class="hljs-string">&#x27;127.0.0.1&#x27;</span>, <span class="hljs-number">7777</span>)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">strxor</span>(<span class="hljs-params">str1, str2</span>):  <br>    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;&#x27;</span>.join([<span class="hljs-built_in">chr</span>(<span class="hljs-built_in">ord</span>(c1) ^ <span class="hljs-built_in">ord</span>(c2)) <span class="hljs-keyword">for</span> c1, c2 <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(str1, str2)])<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">pad</span>(<span class="hljs-params">msg</span>):  <br>    pad_length = <span class="hljs-number">16</span> - <span class="hljs-built_in">len</span>(msg) % <span class="hljs-number">16</span><br>    <span class="hljs-keyword">return</span> msg + <span class="hljs-built_in">chr</span>(pad_length) * pad_length<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpad</span>(<span class="hljs-params">msg</span>): <br>    <span class="hljs-keyword">return</span> msg[:-<span class="hljs-built_in">ord</span>(msg[-<span class="hljs-number">1</span>])]<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">flipplain</span>(<span class="hljs-params">oldplain, newplain, iv</span>):  <span class="hljs-comment"># 定义一个函数用于进行CBC字节翻转攻击</span><br>    <span class="hljs-string">&quot;&quot;&quot;flip oldplain to new plain, return proper iv&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> strxor(strxor(oldplain, newplain), iv)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">bypassproof</span>():  <span class="hljs-comment"># 定义一个函数用于绕过服务器的工作量证明</span><br>    p.recvuntil(<span class="hljs-string">&#x27;SHA256(XXXX+&#x27;</span>)  <span class="hljs-comment"># 读取服务器发来的信息，直到遇到&#x27;SHA256(XXXX+&#x27;为止</span><br>    lastdata = p.recvuntil(<span class="hljs-string">&#x27;)&#x27;</span>, drop=<span class="hljs-literal">True</span>)  <span class="hljs-comment"># 读取&#x27;SHA256(XXXX+&#x27;后面的字符，直到遇到&#x27;)&#x27;为止，得到proof的后16个字符</span><br>    p.recvuntil(<span class="hljs-string">&#x27; == &#x27;</span>)  <span class="hljs-comment"># 继续读取服务器发来的信息，直到遇到&#x27; == &#x27;为止</span><br>    digest = p.recvuntil(<span class="hljs-string">&#x27;\nGive me XXXX:&#x27;</span>, drop=<span class="hljs-literal">True</span>)  <span class="hljs-comment"># 读取&#x27; == &#x27;后面的字符，直到遇到&#x27;\nGive me X<span class="hljs-doctag">XXX:</span>&#x27;为止，得到SHA256哈希值</span><br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">proof</span>(<span class="hljs-params">s</span>):  <span class="hljs-comment"># 定义一个函数，用于检查给定的s是否满足条件</span><br>        <span class="hljs-keyword">return</span> SHA256.new(s + lastdata).hexdigest() == digest  <span class="hljs-comment"># 计算s加上lastdata的SHA256哈希值，然后检查计算出的哈希值是否等于digest</span><br><br>    <span class="hljs-comment"># 使用暴力破解的方法，尝试所有可能的s值，直到找到一个使得proof函数返回True的s值</span><br>    data = pwnlib.util.iters.mbruteforce(<br>        proof, string.ascii_letters + string.digits, <span class="hljs-number">4</span>, method=<span class="hljs-string">&#x27;fixed&#x27;</span>)<br>    p.sendline(data)  <span class="hljs-comment"># 将找到的s值发送给服务器</span><br>    p.recvuntil(<span class="hljs-string">&#x27;Done!\n&#x27;</span>)  <span class="hljs-comment"># 读取服务器的回应，确认工作量证明已经完成</span><br><br>iv_encrypt = <span class="hljs-string">&#x27;2jpmLoSsOlQrqyqE&#x27;</span> <br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">getmd5enc</span>(<span class="hljs-params">i, cipher_flag, cipher_welcome</span>):  <span class="hljs-comment"># 定义一个函数用于获取flag的前i个字符的MD5哈希值的加密结果</span><br>    <span class="hljs-string">&quot;&quot;&quot;return encrypt( md5( flag[7:7+i] ) )&quot;&quot;&quot;</span><br><br>    <span class="hljs-comment"># 通过修改iv的前7个字节，使得解密后的明文块的前7个字节变为&#x27;get-md5&#x27;，而后面的字节不变</span><br>    new_iv = flipplain(<span class="hljs-string">&quot;hitcon&#123;&quot;</span>.ljust(<span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), <span class="hljs-string">&quot;get-md5&quot;</span>.ljust(<br>        <span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), iv_encrypt)<br>    payload = new_iv + cipher_flag  <span class="hljs-comment"># 将修改后的iv和cipher_flag连接起来，作为新的payload</span><br><br>    <span class="hljs-comment"># 计算最后一个字节的值，使得解密后的明文块的最后一个字节为len(cipher_flag) + 16 + 16 - (7 + i + 1)</span><br>    <span class="hljs-comment"># 这样可以使得服务器在解密后的明文上调用md5函数，计算出flag的前i个字符的MD5哈希值</span><br>    last_byte_iv = flipplain(<br>        pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>),<br>        <span class="hljs-string">&quot;a&quot;</span> * <span class="hljs-number">15</span> + <span class="hljs-built_in">chr</span>(<span class="hljs-built_in">len</span>(cipher_flag) + <span class="hljs-number">16</span> + <span class="hljs-number">16</span> - (<span class="hljs-number">7</span> + i + <span class="hljs-number">1</span>)), iv_encrypt)<br>    payload += last_byte_iv + cipher_welcome  <span class="hljs-comment"># 将计算出的最后一个字节和cipher_welcome添加到payload的末尾</span><br><br>    p.sendline(base64.b64encode(payload))  <span class="hljs-comment"># 将payload进行base64编码，然后发送给服务器</span><br>    <span class="hljs-keyword">return</span> p.recvuntil(<span class="hljs-string">&quot;\n&quot;</span>, drop=<span class="hljs-literal">True</span>)  <span class="hljs-comment"># 读取服务器的回应，获取flag的前i个字符的MD5哈希值的加密结果</span><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():  <span class="hljs-comment"># 定义主函数</span><br>    bypassproof()  <span class="hljs-comment"># 首先绕过服务器的工作量证明</span><br><br>    <span class="hljs-comment"># 获取加密后的&quot;Welcome!!&quot;的密文</span><br>    cipher = p.recvuntil(<span class="hljs-string">&#x27;\n&#x27;</span>, drop=<span class="hljs-literal">True</span>)<br>    cipher_welcome = base64.b64decode(cipher)[<span class="hljs-number">16</span>:]<br>    log.info(<span class="hljs-string">&quot;cipher welcome is : &quot;</span> + cipher_welcome)<br><br>    <span class="hljs-comment"># 执行get-flag命令，获取加密后的flag的密文</span><br>    get_flag_iv = flipplain(pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>), pad(<span class="hljs-string">&quot;get-flag&quot;</span>), iv_encrypt)<br>    payload = base64.b64encode(get_flag_iv + cipher_welcome)<br>    p.sendline(payload)<br>    cipher = p.recvuntil(<span class="hljs-string">&#x27;\n&#x27;</span>, drop=<span class="hljs-literal">True</span>)<br>    cipher_flag = base64.b64decode(cipher)[<span class="hljs-number">16</span>:]<br>    flaglen = <span class="hljs-built_in">len</span>(cipher_flag)<br>    log.info(<span class="hljs-string">&quot;cipher flag is : &quot;</span> + cipher_flag)<br><br>    <span class="hljs-comment"># 获取&quot;command not found&quot;的密文</span><br>    p.sendline(base64.b64encode(iv_encrypt + cipher_welcome))<br>    cipher_notfound = p.recvuntil(<span class="hljs-string">&#x27;\n&#x27;</span>, drop=<span class="hljs-literal">True</span>)<br><br>    flag = <span class="hljs-string">&quot;&quot;</span><br>    <span class="hljs-comment"># 对于flag的每一个字节，使用暴力破解的方法进行猜测</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(flaglen - <span class="hljs-number">7</span>):<br>        md5_indexi = getmd5enc(i, cipher_flag, cipher_welcome)<br>        md5_indexi = base64.b64decode(md5_indexi)[<span class="hljs-number">16</span>:]<br>        log.info(<span class="hljs-string">&quot;get encrypt(md5(flag[7:7+i])): &quot;</span> + md5_indexi)<br>        <span class="hljs-keyword">for</span> guess <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>):<br>            <span class="hljs-comment"># 计算猜测的字节的MD5哈希值</span><br>            guess_md5 = MD5.new(flag + <span class="hljs-built_in">chr</span>(guess)).digest()<br>            <span class="hljs-comment"># 通过修改前一个密文块，使得解密后的明文块的值为&#x27;get-time&#x27;，然后发送给服务器</span><br>            payload = flipplain(guess_md5, <span class="hljs-string">&#x27;get-time&#x27;</span>.ljust(<span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x01&#x27;</span>),<br>                                iv_encrypt)<br>            payload += md5_indexi<br>            p.sendline(base64.b64encode(payload))<br>            res = p.recvuntil(<span class="hljs-string">&quot;\n&quot;</span>, drop=<span class="hljs-literal">True</span>)<br>            <span class="hljs-comment"># 如果收到的回应是&#x27;command not found&#x27;的密文，说明猜测的字节是错误的</span><br>            <span class="hljs-keyword">if</span> res == cipher_notfound:<br>                <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Guess &#123;&#125; is wrong.&#x27;</span>.<span class="hljs-built_in">format</span>(guess)<br>            <span class="hljs-comment"># 如果收到的回应不是&#x27;command not found&#x27;的密文，说明猜测的字节是正确的</span><br>            <span class="hljs-keyword">else</span>:<br>                <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Found!&#x27;</span><br>                flag += <span class="hljs-built_in">chr</span>(guess)<br>                <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Flag so far:&#x27;</span>, flag<br>                <span class="hljs-keyword">break</span><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:<br>    main()  <br><br><span class="hljs-comment">#Flag so far: Paddin9_15_ve3y_h4rd__!!&#125;\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10\x10</span><br></code></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="2017-HITCON-Secret-Server-Revenge"><a href="#2017-HITCON-Secret-Server-Revenge" class="headerlink" title="2017 HITCON Secret Server Revenge"></a>2017 HITCON Secret Server Revenge</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> os<br><span class="hljs-keyword">import</span> base64<br><span class="hljs-keyword">import</span> time<br><span class="hljs-keyword">import</span> sys<br><span class="hljs-keyword">import</span> random<br><span class="hljs-keyword">import</span> string<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES<br><span class="hljs-keyword">from</span> Crypto.Hash <span class="hljs-keyword">import</span> *<br><br>key = os.urandom(<span class="hljs-number">16</span>)<br>iv = os.urandom(<span class="hljs-number">16</span>)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">pad</span>(<span class="hljs-params">msg</span>):<br>  pad_length = <span class="hljs-number">16</span> - <span class="hljs-built_in">len</span>(msg) % <span class="hljs-number">16</span><br>  <span class="hljs-keyword">return</span> msg + <span class="hljs-built_in">chr</span>(pad_length) * pad_length<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpad</span>(<span class="hljs-params">msg</span>):<br>  <span class="hljs-keyword">return</span> msg[:-<span class="hljs-built_in">ord</span>(msg[-<span class="hljs-number">1</span>])]<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">encrypt</span>(<span class="hljs-params">iv, msg</span>):<br>  msg = pad(msg)<br>  cipher = AES.new(key, AES.MODE_CBC, iv)<br>  encrypted = cipher.encrypt(msg)<br>  <span class="hljs-keyword">return</span> encrypted<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">decrypt</span>(<span class="hljs-params">iv, msg</span>):<br>  cipher = AES.new(key, AES.MODE_CBC, iv)<br>  decrypted = cipher.decrypt(msg)<br>  decrypted = unpad(decrypted)<br>  <span class="hljs-keyword">return</span> decrypted<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">send_msg</span>(<span class="hljs-params">msg</span>):<br>  encrypted = encrypt(iv, msg)<br>  msg = iv + encrypted<br>  msg = base64.b64encode(msg)<br>  <span class="hljs-built_in">print</span> msg<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">recv_msg</span>():<br>  msg = raw_input()  <span class="hljs-comment"># 从用户输入中获取消息</span><br>  <span class="hljs-keyword">try</span>:<br>    msg = base64.b64decode(msg)<br>    <span class="hljs-keyword">assert</span> <span class="hljs-built_in">len</span>(msg)&lt;<span class="hljs-number">500</span>    <span class="hljs-comment"># 检查解码后的消息长度是否小于500</span><br>    decrypted = decrypt(msg[:<span class="hljs-number">16</span>], msg[<span class="hljs-number">16</span>:])<br>    <span class="hljs-keyword">return</span> decrypted<br>  <span class="hljs-keyword">except</span>:<br>    <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Error&#x27;</span><br>    exit(<span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">check_token</span>(<span class="hljs-params">token</span>):<br>  <span class="hljs-built_in">print</span> <span class="hljs-string">&#x27;Give me the token!&#x27;</span><br>  msg = raw_input()  <span class="hljs-comment"># 从用户输入中获取消息</span><br>  msg = base64.b64decode(msg)<br>  <span class="hljs-keyword">return</span> msg == token<br><br><span class="hljs-comment"># 定义一个函数用来进行工作证明</span><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">proof_of_work</span>():<br>  proof = <span class="hljs-string">&#x27;&#x27;</span>.join([random.choice(string.ascii_letters+string.digits) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> xrange(<span class="hljs-number">20</span>)])  <span class="hljs-comment"># 生成一个20字符的随机字符串</span><br>  digest = SHA256.new(proof).hexdigest()  <span class="hljs-comment"># 计算随机字符串的SHA256哈希</span><br>  <span class="hljs-built_in">print</span> <span class="hljs-string">&quot;SHA256(XXXX+%s) == %s&quot;</span> % (proof[<span class="hljs-number">4</span>:],digest)<br>  x = raw_input(<span class="hljs-string">&#x27;Give me XXXX:&#x27;</span>)  <span class="hljs-comment"># 从用户输入中获取响应</span><br>  <span class="hljs-comment"># 检查响应的长度是否为4，以及响应和随机字符串的后16个字符连接后的SHA256哈希是否等于原哈希</span><br>  <span class="hljs-keyword">if</span> <span class="hljs-built_in">len</span>(x)!=<span class="hljs-number">4</span> <span class="hljs-keyword">or</span> SHA256.new(x+proof[<span class="hljs-number">4</span>:]).hexdigest() != digest: <br>    exit(<span class="hljs-number">0</span>)<br>  <span class="hljs-keyword">return</span> <br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():<br>  proof_of_work()<br>  token = os.urandom(<span class="hljs-number">56</span>)<br>  <span class="hljs-keyword">with</span> <span class="hljs-built_in">open</span>(<span class="hljs-string">&#x27;flag.txt&#x27;</span>) <span class="hljs-keyword">as</span> f:<br>    flag = f.read().strip()<br>  past = <span class="hljs-number">0</span><br>  send_msg(<span class="hljs-string">&#x27;Welcome!!&#x27;</span>)<br>  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> xrange(<span class="hljs-number">340</span>):<br>    <span class="hljs-keyword">try</span>:<br>      cur = time.time()<br>      <span class="hljs-comment"># 如果当前时间和past之差小于1，那么等待一段时间，以确保每次循环至少需要1秒</span><br>      <span class="hljs-keyword">if</span> cur-past &lt; <span class="hljs-number">1</span>: time.sleep(<span class="hljs-number">1</span>-cur+past)<br>      <span class="hljs-comment"># 更新past为当前时间</span><br>      past = cur<br>      <span class="hljs-comment"># 接收消息</span><br>      msg = recv_msg()<br>      <span class="hljs-comment"># 如果消息以&#x27;exit-here&#x27;开头，那么退出程序</span><br>      <span class="hljs-keyword">if</span> msg.startswith(<span class="hljs-string">&#x27;exit-here&#x27;</span>):<br>        exit(<span class="hljs-number">0</span>)<br>      <span class="hljs-comment"># 如果消息以&#x27;get-md5&#x27;开头，那么计算消息的MD5哈希并发送回去</span><br>      <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-md5&#x27;</span>):<br>        send_msg(MD5.new(msg[<span class="hljs-number">7</span>:]).digest())<br>      <span class="hljs-comment"># 如果消息以&#x27;get-time&#x27;开头，那么发送当前时间</span><br>      <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-time&#x27;</span>):<br>        send_msg(<span class="hljs-built_in">str</span>(time.time()))<br>      <span class="hljs-comment"># 如果消息以&#x27;get-sha1&#x27;开头，那么计算消息的SHA1哈希并发送回去</span><br>      <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-sha1&#x27;</span>):<br>        send_msg(SHA.new(msg[<span class="hljs-number">8</span>:]).digest())<br>      <span class="hljs-comment"># 如果消息以&#x27;get-token&#x27;开头，那么发送token</span><br>      <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;get-token&#x27;</span>):<br>        send_msg(<span class="hljs-string">&#x27;token: &#x27;</span> + token)<br>      <span class="hljs-comment"># 如果消息以&#x27;check-token&#x27;开头，那么检查token，如果token匹配，打印flag</span><br>      <span class="hljs-keyword">elif</span> msg.startswith(<span class="hljs-string">&#x27;check-token&#x27;</span>):<br>        <span class="hljs-keyword">if</span> check_token(token):<br>          <span class="hljs-built_in">print</span> flag<br>        <span class="hljs-comment"># 无论token是否匹配，都退出程序</span><br>        exit(<span class="hljs-number">0</span>)<br>      <span class="hljs-comment"># 如果消息不符合上述任何一种格式，那么发送&#x27;command not found&#x27;</span><br>      <span class="hljs-keyword">else</span>:<br>        send_msg(<span class="hljs-string">&#x27;command not found&#x27;</span>)<br>    <span class="hljs-comment"># 如果在上述过程中出现任何错误，退出程序</span><br>    <span class="hljs-keyword">except</span>:<br>      exit(<span class="hljs-number">0</span>)<br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&#x27;__main__&#x27;</span>:<br>  main()<br></code></pre></td></tr></table></figure>
+<h4 id="题目分析-2"><a href="#题目分析-2" class="headerlink" title="题目分析"></a>题目分析</h4><p><strong>这个就是接着上面的来的，不过这次简单的修改了题目</strong></p>
+<ul>
+<li><strong>加密算法的 iv 未知，不过可以根据 <code>Welcome!!</code> 加密后的消息推算出来</strong></li>
+<li><strong>程序多了一个 56 字节的 token</strong></li>
+<li><strong>程序最多能进行 340 操作，因此上述的爆破自然不可行</strong></li>
+</ul>
+<p><strong>程序的大概流程如下</strong></p>
+<ol>
+<li><strong>经过 <code>proof of work</code></strong></li>
+<li><strong>发送 <code>Welcome!!</code> 加密后的消息</strong></li>
+<li><strong>在 340 次操作中，需要猜中 token 的值，然后会自动将 flag 输出</strong></li>
+</ol>
+<h4 id="主要漏洞-1"><a href="#主要漏洞-1" class="headerlink" title="主要漏洞"></a>主要漏洞</h4><p><strong>当然，在上个题目存在的漏洞在这里也有</strong></p>
+<ol>
+<li><strong>任意执行给定命令</strong></li>
+<li><strong>长度截断</strong></li>
+</ol>
+<h4 id="利用思路-1"><a href="#利用思路-1" class="headerlink" title="利用思路"></a>利用思路</h4><p><strong>由于 340 的次数限制，虽然我们仍然可以获得 <code>md5(token[:i])</code> 加密后的值（这里需要注意的是这部分加密后恰好是 32 个字节，前 16 个字节是 <code>md5</code> 后加密的值，后面的 16 个字节完全是填充的加密后的字节。这里 <code>md5(token[:i])</code> 特指前 16 个字节）但是，我们不能再次为了获得一个字符去爆破 256 次了。</strong></p>
+<p><strong>既然不能够爆破，那么我们有没有可能一次获取一个字节的大小呢？这里，我们再来梳理一下该程序可能可以泄漏的信息</strong></p>
+<ol>
+<li><strong>某些消息的 md5 值加密后的值，这里我们可以获取 <code>md5(token[:i])</code> 加密后的值</strong></li>
+<li><strong>unpad 每次会对解密后的消息进行 unpad，这个字节是根据解密后的消息的最后一个字节来决定的。如果我们可以计算出这个字节的大小，那么我们就可能可以知道一个字节的值</strong></li>
+</ol>
+<p><strong>这里我们深入分析一下 <code>unpad</code> 的信息泄漏。如果我们将加密 IV 和 <code>encrypt(md5(token[:i]))</code> 放在某个密文 C 的后面，构成 <code>C|IV|encrypt(md5(token[:i]))</code> ，那么解密出来的消息的最后一个明文块就是 <code>md5(token[:i])</code> 。进而，在 <code>unpad</code> 的时候就是利用 <code>md5(token[:i])</code> 的最后一个字节（ 0-255）进行 <code>unpad</code> ，之后对 <code>unpad</code> 后的字符串执行指定的命令（比如 md5）。那么，如果我们事先构造一些消息哈希后加密的样本，然后将上述执行后的结果与样本比较，如果相同，那么我们基本可以确定 <code>md5(token[:i])</code> 的最后一个字节。然而，如果 <code>md5(token[:i])</code> 的最后一个字节小于 16，那么在 <code>unpad</code> 时就会利用一些 <code>md5</code> 中的值，而这部分值，由于对于不同长度的 <code>token[:i]</code> 几乎都不会相同。所以可能需要特殊处理。</strong></p>
+<p><strong>我们已经知道了这个问题的关键，即生成与 unpad 字节大小对应的加密结果样本，以便于查表</strong></p>
+<p><strong>具体利用思路如下</strong></p>
+<ol>
+<li><strong>绕过 <code>proof of work</code></strong></li>
+<li><strong>获取 <code>token</code> 加密后的结果 <code>token_enc</code> ，这里会在 <code>token</code> 前面添加 7 个字节 <code>&quot;token: &quot;</code> 。 因此加密后的长度为 64</strong></li>
+<li><strong>依次获取 <code>encrypt(md5(token[:i]))</code> 的结果，一共是 57 个，包括最后一个 <code>token</code> 的 padding</strong></li>
+<li><strong>构造与 <code>unpad</code> 大小对应的样本。这里我们构造密文 <code>token_enc|padding|IV_indexi|welcome_enc</code> 。由于 <code>IV_indexi</code> 是为了修改最后一个明文块的最后一个字节，所以该字节处于变化之中。我们若想获取一些固定字节的哈希值，这部分自然不能添加。因此这里产生样本时 <code>unpad</code> 的大小范围为 17 ~ 255。如果最后测试时 <code>md5(token[:i])</code> 的最后一个字节小于 17 的话，基本就会出现一些未知的样本。很自然的一个想法是我们直接获取 255-17+1 个这么多个样本，然而，如果这样做的话，根据上面 340 的次数（255-17+1+57+56&gt;340）限制，我们显然不能获取到 <code>token</code> 的所有字节。所以这里我们需要想办法复用一些内容，这里我们选择复用 <code>encrypt(md5(token[:i]))</code> 的结果。那么我们在补充 padding 时需要确保一方面次数够用，另一方面可以复用之前的结果。这里我们设置 <code>unpad</code> 的循环为 17 到 208，并使得 <code>unpad</code> 大于 208 时恰好 <code>unpad</code> 到我们可以复用的地方。这里需要注意的是，当 <code>md5(token[:i])</code> 的最后一个字节为 0 时，会将所有解密后的明文 <code>unpad</code> 掉，因此会出现 <code>command not found</code> 的密文。</strong></li>
+<li><strong>再次构造密文 <code>token_enc|padding|IV|encrypt(md5(token[:i]))</code> ，那么，解密时即使用 <code>md5(token[:i])</code> 的最后一个字节进行 <code>unpad</code> 。如果这个字节不小于 17 或者为 0，则可以处理。如果这个字节小于 17，那么显然，最后返回给用户的 <code>md5</code> 的结果并不在样本范围内，那么我们修改其最后一个字节的最高比特位，使其 <code>unpad</code> 后可以落在样本范围内。这样，我们就可以猜出 <code>md5(token[:i])</code> 的最后一个字节。</strong></li>
+<li><strong>在猜出 <code>md5(token[:i])</code> 的最后一个字节后，我们可以在本地暴力破解 256 次，找出所有哈希值末尾为 <code>md5(token[:i])</code> 的最后一个字节的字符。</strong></li>
+<li><strong>但是，在第六步中，对于一个 <code>md5(token[:i])</code> 可能会找出多个备选字符，因为我们只需要使得其末尾字节是给定字节即可。</strong></li>
+<li><strong>那么，问题来了，如何删除一些多余的备选字符串呢？这里我就选择了一个小 trick，即在逐字节枚举时，同时枚举出 <code>token</code> 的 padding。由于 padding 是 0x01 是固定的，所以我们只需要过滤出所有结尾不是 0x01 的 <code>token</code> 即可。</strong></li>
+</ol>
+<h4 id="解题代码-2"><a href="#解题代码-2" class="headerlink" title="解题代码"></a>解题代码</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> pwn <span class="hljs-keyword">import</span> *<br><span class="hljs-keyword">import</span> base64, time, random, string<br><span class="hljs-keyword">from</span> Crypto.Cipher <span class="hljs-keyword">import</span> AES<br><span class="hljs-keyword">from</span> Crypto.Hash <span class="hljs-keyword">import</span> SHA256, MD5<br><span class="hljs-comment">#context.log_level = &#x27;debug&#x27;</span><br><br>p = remote(<span class="hljs-string">&#x27;127.0.0.1&#x27;</span>, <span class="hljs-number">7777</span>)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">strxor</span>(<span class="hljs-params">str1, str2</span>):<br>    <span class="hljs-keyword">return</span> <span class="hljs-string">&#x27;&#x27;</span>.join([<span class="hljs-built_in">chr</span>(<span class="hljs-built_in">ord</span>(c1) ^ <span class="hljs-built_in">ord</span>(c2)) <span class="hljs-keyword">for</span> c1, c2 <span class="hljs-keyword">in</span> <span class="hljs-built_in">zip</span>(str1, str2)])<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">pad</span>(<span class="hljs-params">msg</span>):<br>    pad_length = <span class="hljs-number">16</span> - <span class="hljs-built_in">len</span>(msg) % <span class="hljs-number">16</span><br>    <span class="hljs-keyword">return</span> msg + <span class="hljs-built_in">chr</span>(pad_length) * pad_length<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">unpad</span>(<span class="hljs-params">msg</span>):<br>    <span class="hljs-keyword">return</span> msg[:-<span class="hljs-built_in">ord</span>(msg[-<span class="hljs-number">1</span>])]  <span class="hljs-comment"># remove pad</span><br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">flipplain</span>(<span class="hljs-params">oldplain, newplain, iv</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;flip oldplain to new plain, return proper iv&quot;&quot;&quot;</span><br>    <span class="hljs-keyword">return</span> strxor(strxor(oldplain, newplain), iv)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">bypassproof</span>():<br>    p.recvuntil(<span class="hljs-string">&#x27;SHA256(XXXX+&#x27;</span>)<br>    lastdata = p.recvuntil(<span class="hljs-string">&#x27;)&#x27;</span>, drop=<span class="hljs-literal">True</span>)<br>    p.recvuntil(<span class="hljs-string">&#x27; == &#x27;</span>)<br>    digest = p.recvuntil(<span class="hljs-string">&#x27;\nGive me XXXX:&#x27;</span>, drop=<span class="hljs-literal">True</span>)<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">proof</span>(<span class="hljs-params">s</span>):<br>        <span class="hljs-keyword">return</span> SHA256.new(s + lastdata).hexdigest() == digest<br><br>    data = pwnlib.util.iters.mbruteforce(<br>        proof, string.ascii_letters + string.digits, <span class="hljs-number">4</span>, method=<span class="hljs-string">&#x27;fixed&#x27;</span>)<br>    p.sendline(data)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">sendmsg</span>(<span class="hljs-params">iv, cipher</span>):<br>    payload = iv + cipher<br>    payload = base64.b64encode(payload)<br>    p.sendline(payload)<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">recvmsg</span>():<br>    data = p.recvuntil(<span class="hljs-string">&quot;\n&quot;</span>, drop=<span class="hljs-literal">True</span>)<br>    data = base64.b64decode(data)<br>    <span class="hljs-keyword">return</span> data[:<span class="hljs-number">16</span>], data[<span class="hljs-number">16</span>:]<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">getmd5enc</span>(<span class="hljs-params">i, cipher_token, cipher_welcome, iv</span>):<br>    <span class="hljs-string">&quot;&quot;&quot;return encrypt( md5( token[:i+1] ) )&quot;&quot;&quot;</span><br>    <span class="hljs-comment">## keep iv[7:] do not change, so decrypt msg[7:] won&#x27;t change</span><br>    get_md5_iv = flipplain(<span class="hljs-string">&quot;token: &quot;</span>.ljust(<span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), <span class="hljs-string">&quot;get-md5&quot;</span>.ljust(<br>        <span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), iv)<br>    payload = cipher_token<br>    <span class="hljs-comment">## calculate the proper last byte number</span><br>    last_byte_iv = flipplain(<br>        pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>),<br>        <span class="hljs-string">&quot;a&quot;</span> * <span class="hljs-number">15</span> + <span class="hljs-built_in">chr</span>(<span class="hljs-built_in">len</span>(cipher_token) + <span class="hljs-number">16</span> + <span class="hljs-number">16</span> - (<span class="hljs-number">7</span> + i + <span class="hljs-number">1</span>)), iv)<br>    payload += last_byte_iv + cipher_welcome<br>    sendmsg(get_md5_iv, payload)<br>    <span class="hljs-keyword">return</span> recvmsg()<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">get_md5_token_indexi</span>(<span class="hljs-params">iv_encrypt, cipher_welcome, cipher_token</span>):<br>    md5_token_idxi = []<br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-built_in">len</span>(cipher_token) - <span class="hljs-number">7</span>):<br>        log.info(<span class="hljs-string">&quot;idx i: &#123;&#125;&quot;</span>.<span class="hljs-built_in">format</span>(i))<br>        _, md5_indexi = getmd5enc(i, cipher_token, cipher_welcome, iv_encrypt)<br>        <span class="hljs-keyword">assert</span> (<span class="hljs-built_in">len</span>(md5_indexi) == <span class="hljs-number">32</span>)<br>        <span class="hljs-comment"># remove the last 16 byte for padding</span><br>        md5_token_idxi.append(md5_indexi[:<span class="hljs-number">16</span>])<br>    <span class="hljs-keyword">return</span> md5_token_idxi<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">doin</span>(<span class="hljs-params">unpadcipher, md5map, candidates, flag</span>):<br>    <span class="hljs-keyword">if</span> unpadcipher <span class="hljs-keyword">in</span> md5map:<br>        lastbyte = md5map[unpadcipher]<br>    <span class="hljs-keyword">else</span>:<br>        lastbyte = <span class="hljs-number">0</span><br>    <span class="hljs-keyword">if</span> flag == <span class="hljs-number">0</span>:<br>        lastbyte ^= <span class="hljs-number">0x80</span><br>    newcandidates = []<br>    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> candidates:<br>        <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">256</span>):<br>            <span class="hljs-keyword">if</span> MD5.new(x + <span class="hljs-built_in">chr</span>(c)).digest()[-<span class="hljs-number">1</span>] == <span class="hljs-built_in">chr</span>(lastbyte):<br>                newcandidates.append(x + <span class="hljs-built_in">chr</span>(c))<br>    candidates = newcandidates<br>    <span class="hljs-built_in">print</span> candidates<br>    <span class="hljs-keyword">return</span> candidates<br><br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">main</span>():<br>    bypassproof()<br><br>    <span class="hljs-comment"># result of encrypted Welcome!!</span><br>    iv_encrypt, cipher_welcome = recvmsg()<br>    log.info(<span class="hljs-string">&quot;cipher welcome is : &quot;</span> + cipher_welcome)<br><br>    <span class="hljs-comment"># execute get-token</span><br>    get_token_iv = flipplain(pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>), pad(<span class="hljs-string">&quot;get-token&quot;</span>), iv_encrypt)<br>    sendmsg(get_token_iv, cipher_welcome)<br>    _, cipher_token = recvmsg()<br>    token_len = <span class="hljs-built_in">len</span>(cipher_token)<br>    log.info(<span class="hljs-string">&quot;cipher token is : &quot;</span> + cipher_token)<br><br>    <span class="hljs-comment"># get command not found cipher</span><br>    sendmsg(iv_encrypt, cipher_welcome)<br>    _, cipher_notfound = recvmsg()<br><br>    <span class="hljs-comment"># get encrypted(token[:i+1]),57 times</span><br>    md5_token_idx_list = get_md5_token_indexi(iv_encrypt, cipher_welcome,<br>                                              cipher_token)<br>    <span class="hljs-comment"># get md5map for each unpadsize, 209-17 times</span><br>    <span class="hljs-comment"># when upadsize&gt;208, it will unpad ciphertoken</span><br>    <span class="hljs-comment"># then we can reuse</span><br>    md5map = <span class="hljs-built_in">dict</span>()<br>    <span class="hljs-keyword">for</span> unpadsize <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">17</span>, <span class="hljs-number">209</span>):<br>        log.info(<span class="hljs-string">&quot;get unpad size &#123;&#125; cipher&quot;</span>.<span class="hljs-built_in">format</span>(unpadsize))<br>        get_md5_iv = flipplain(<span class="hljs-string">&quot;token: &quot;</span>.ljust(<span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), <span class="hljs-string">&quot;get-md5&quot;</span>.ljust(<br>            <span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), iv_encrypt)<br>        <span class="hljs-comment">## padding 16*11 bytes</span><br>        padding = <span class="hljs-number">16</span> * <span class="hljs-number">11</span> * <span class="hljs-string">&quot;a&quot;</span><br>        <span class="hljs-comment">## calculate the proper last byte number, only change the last byte</span><br>        <span class="hljs-comment">## set last_byte_iv = iv_encrypted[:15] | proper byte</span><br>        last_byte_iv = flipplain(<br>            pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>),<br>            pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>)[:<span class="hljs-number">15</span>] + <span class="hljs-built_in">chr</span>(unpadsize), iv_encrypt)<br>        cipher = cipher_token + padding + last_byte_iv + cipher_welcome<br>        sendmsg(get_md5_iv, cipher)<br>        _, unpadcipher = recvmsg()<br>        md5map[unpadcipher] = unpadsize<br><br>    <span class="hljs-comment"># reuse encrypted(token[:i+1])</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">209</span>, <span class="hljs-number">256</span>):<br>        target = md5_token_idx_list[<span class="hljs-number">56</span> - (i - <span class="hljs-number">209</span>)]<br>        md5map[target] = i<br><br>    candidates = [<span class="hljs-string">&quot;&quot;</span>]<br>    <span class="hljs-comment"># get the byte token[i], only 56 byte</span><br>    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(token_len - <span class="hljs-number">7</span>):<br>        log.info(<span class="hljs-string">&quot;get token[&#123;&#125;]&quot;</span>.<span class="hljs-built_in">format</span>(i))<br>        get_md5_iv = flipplain(<span class="hljs-string">&quot;token: &quot;</span>.ljust(<span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), <span class="hljs-string">&quot;get-md5&quot;</span>.ljust(<br>            <span class="hljs-number">16</span>, <span class="hljs-string">&#x27;\x00&#x27;</span>), iv_encrypt)<br>        <span class="hljs-comment">## padding 16*11 bytes</span><br>        padding = <span class="hljs-number">16</span> * <span class="hljs-number">11</span> * <span class="hljs-string">&quot;a&quot;</span><br>        cipher = cipher_token + padding + iv_encrypt + md5_token_idx_list[i]<br>        sendmsg(get_md5_iv, cipher)<br>        _, unpadcipher = recvmsg()<br>        <span class="hljs-comment"># already in or md5[token[:i]][-1]=&#x27;\x00&#x27;</span><br>        <span class="hljs-keyword">if</span> unpadcipher <span class="hljs-keyword">in</span> md5map <span class="hljs-keyword">or</span> unpadcipher == cipher_notfound:<br>            candidates = doin(unpadcipher, md5map, candidates, <span class="hljs-number">1</span>)<br>        <span class="hljs-keyword">else</span>:<br>            log.info(<span class="hljs-string">&quot;unpad size 1-16&quot;</span>)<br>            <span class="hljs-comment"># flip most significant bit of last byte to move it in a good range</span><br>            cipher = cipher[:-<span class="hljs-number">17</span>] + strxor(cipher[-<span class="hljs-number">17</span>], <span class="hljs-string">&#x27;\x80&#x27;</span>) + cipher[-<span class="hljs-number">16</span>:]<br>            sendmsg(get_md5_iv, cipher)<br>            _, unpadcipher = recvmsg()<br>            <span class="hljs-keyword">if</span> unpadcipher <span class="hljs-keyword">in</span> md5map <span class="hljs-keyword">or</span> unpadcipher == cipher_notfound:<br>                candidates = doin(unpadcipher, md5map, candidates, <span class="hljs-number">0</span>)<br>            <span class="hljs-keyword">else</span>:<br>                log.info(<span class="hljs-string">&#x27;oh my god,,,, it must be in...&#x27;</span>)<br>                exit()<br>    <span class="hljs-built_in">print</span> <span class="hljs-built_in">len</span>(candidates)<br>    <span class="hljs-comment"># padding 0x01</span><br>    candidates = <span class="hljs-built_in">filter</span>(<span class="hljs-keyword">lambda</span> x: x[-<span class="hljs-number">1</span>] == <span class="hljs-built_in">chr</span>(<span class="hljs-number">0x01</span>), candidates)<br>    <span class="hljs-comment"># only 56 bytes</span><br>    candidates = [x[:-<span class="hljs-number">1</span>] <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> candidates]<br>    <span class="hljs-built_in">print</span> <span class="hljs-built_in">len</span>(candidates)<br>    <span class="hljs-keyword">assert</span> (<span class="hljs-built_in">len</span>(candidates[<span class="hljs-number">0</span>]) == <span class="hljs-number">56</span>)<br><br>    <span class="hljs-comment"># check-token</span><br>    check_token_iv = flipplain(<br>        pad(<span class="hljs-string">&quot;Welcome!!&quot;</span>), pad(<span class="hljs-string">&quot;check-token&quot;</span>), iv_encrypt)<br>    sendmsg(check_token_iv, cipher_welcome)<br>    p.recvuntil(<span class="hljs-string">&quot;Give me the token!\n&quot;</span>)<br>    p.sendline(base64.b64encode(candidates[<span class="hljs-number">0</span>]))<br>    <span class="hljs-built_in">print</span> p.recv()<br><br>    p.interactive()<br><br><br><span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:<br>    main()<br></code></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考：<a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC字节翻转攻击&amp;Padding Oracle Attack原理解析</a><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2130129">一文搞明白 Padding Oracle Attack</a><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" rel="noopener" href="https://ctf-wiki.org/crypto/blockcipher/mode/padding-oracle-attack/">CTF Wiki</a><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a target="_blank" rel="noopener" href="https://skatexu.github.io/2024/01/09/2023-%E7%AC%AC%E5%85%AD%E5%B1%8A%E5%AE%89%E6%B4%B5%E6%9D%AF-Cry2/">skateXu的博客</a></strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/AES/" class="category-chain-item">AES</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/AES/" class="print-no-link">#AES</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>AES Padding Oracle Attack</div>
+      <div>http://example.com/2024/03/02/AES Padding Oracle Attack/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>John Doe</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年3月2日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/03/26/%E6%A0%BC%E5%AF%86%E7%A0%81%E5%AD%A6%E4%B9%A0-LLL%E7%AE%97%E6%B3%95/" title="格密码学习 LLL算法">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">格密码学习 LLL算法</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/02/28/LCG%E5%AD%A6%E4%B9%A0/" title="LCG学习">
+                        <span class="hidden-mobile">LCG学习</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
